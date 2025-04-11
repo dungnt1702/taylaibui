@@ -2,14 +2,15 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TAY LÁI BỤI - THEO DÕI XE</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/png" href="logo.png">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
   <style>
     body { background: #fff; font-family: Arial, sans-serif; text-align: center; padding: 20px; color: #111; }
+    h1 { font-size: 28px; margin-bottom: 10px; }
     .tabs button { padding: 10px 20px; margin: 5px; background: #ccc; border: none; border-radius: 5px; cursor: pointer; }
     .tabs button.active { background: #555; color: #fff; }
     .vehicle { display: inline-block; background: #f2f2f2; border-radius: 10px; margin: 10px; padding: 15px; width: 260px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); }
@@ -61,8 +62,7 @@ const firebaseConfig = {
   projectId: "taylaibui-tracker",
   storageBucket: "taylaibui-tracker.appspot.com",
   messagingSenderId: "1004195839154",
-  appId: "1:1004195839154:web:bf2b1056c3506343549dab",
-  measurementId: "G-03290J6QP8"
+  appId: "1:1004195839154:web:bf2b1056c3506343549dab"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
@@ -96,15 +96,27 @@ function showTab(tab) {
 function startTimer(id, minutes) {
   const ref = db.ref('timers/' + id);
   const endAt = Date.now() + minutes * 60000;
-  ref.set({ endAt, minutes, paused: false });
+  ref.set({ endAt, minutes, paused: false, warned5: false, warned1: false });
 }
 
 function pauseTimer(id) {
-  db.ref('timers/' + id + '/paused').set(true);
+  db.ref('timers/' + id).once('value', snap => {
+    const data = snap.val();
+    if (data && data.endAt) {
+      const remaining = Math.floor((data.endAt - Date.now()) / 1000);
+      db.ref('timers/' + id).update({ paused: true, remaining });
+    }
+  });
 }
 
 function resumeTimer(id) {
-  db.ref('timers/' + id + '/paused').set(false);
+  db.ref('timers/' + id).once('value', snap => {
+    const data = snap.val();
+    if (data && data.remaining) {
+      const endAt = Date.now() + data.remaining * 1000;
+      db.ref('timers/' + id).update({ paused: false, endAt });
+    }
+  });
 }
 
 function resetTimer(id) {
@@ -119,10 +131,10 @@ function setupRealtimeSync() {
     box.innerHTML = `
       <h3>Xe ${i}</h3>
       <div class="timer" id="timer-${i}">00:00</div>
-      <button class="btn-start" id="start10-${i}" onclick="startTimer(${i}, 10)">Bắt đầu 10p</button>
-      <button class="btn-start" id="start20-${i}" onclick="startTimer(${i}, 20)">Bắt đầu 20p</button>
+      <button id="start10-${i}" onclick="startTimer(${i}, 10)">Bắt đầu 10p</button>
+      <button id="start20-${i}" onclick="startTimer(${i}, 20)">Bắt đầu 20p</button>
       <button id="pause-${i}" onclick="pauseTimer(${i})">Tạm hoãn</button>
-      <button id="resume-${i}" onclick="resumeTimer(${i})" style="display:none">Tiếp tục</button>
+      <button id="resume-${i}" onclick="resumeTimer(${i})" style="display:none;">Tiếp tục</button>
       <button onclick="resetTimer(${i})">Reset</button>
     `;
     document.getElementById("vehicle-list").appendChild(box);
@@ -141,8 +153,8 @@ function setupRealtimeSync() {
 
       if (data && data.endAt) {
         let secondsLeft = Math.floor((data.endAt - Date.now()) / 1000);
-        let warned5 = false;
-        let warned1 = false;
+        let warned5 = data.warned5 || false;
+        let warned1 = data.warned1 || false;
 
         if (data.paused) {
           parent.classList.add("paused");
@@ -158,16 +170,19 @@ function setupRealtimeSync() {
           btnPause.style.display = "inline-block";
           btnResume.style.display = "none";
           display.textContent = formatTime(secondsLeft);
+
           timers[i] = setInterval(() => {
             secondsLeft--;
             display.textContent = formatTime(secondsLeft);
-            if (secondsLeft <= 300 && !warned5) {
+            if (secondsLeft === 300 && !warned5) {
               speak(`Xe số ${i} còn 5 phút`);
+              db.ref('timers/' + i + '/warned5').set(true);
               warned5 = true;
             }
-            if (secondsLeft <= 60 && !warned1) {
-              parent.classList.add("warning");
+            if (secondsLeft === 60 && !warned1) {
               speak(`Xe số ${i} còn 1 phút`);
+              parent.classList.add("warning");
+              db.ref('timers/' + i + '/warned1').set(true);
               warned1 = true;
             }
             if (secondsLeft <= 0) {
@@ -222,7 +237,6 @@ function renderReport() {
     }
     const tbody = document.getElementById("report-body");
     tbody.innerHTML = totals.map((v, i) => i > 0 ? `<tr><td>Xe ${i}</td><td>${v}</td></tr>` : '').join('');
-
     const ctx = document.getElementById("reportChart").getContext("2d");
     if (chart) chart.destroy();
     chart = new Chart(ctx, {
