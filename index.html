@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Quản lý thời gian xe khách</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    .vehicle {
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 10px;
+      width: 230px;
+      display: inline-block;
+      vertical-align: top;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .vehicle h3 {
+      margin: 0 0 10px;
+    }
+    .timer {
+      font-size: 22px;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+    .warning {
+      background-color: yellow !important;
+    }
+    .expired {
+      background-color: red !important;
+      color: white;
+    }
+    button {
+      padding: 6px 10px;
+      margin: 3px;
+      font-size: 14px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+    button:active {
+      transform: scale(0.98);
+    }
+  </style>
+</head>
+<body>
+  <h1>Quản lý thời gian hoạt động xe khách</h1>
+  <div id="vehicle-list"></div>
+
+  <script>
+    const vehicles = 22;
+    const vehicleList = document.getElementById("vehicle-list");
+    const timers = {};
+
+    for (let i = 1; i <= vehicles; i++) {
+      const div = document.createElement("div");
+      div.className = "vehicle";
+      div.innerHTML = `
+        <h3>Xe ${i}</h3>
+        <div class="timer" id="timer-${i}">00:00</div>
+        <button onclick="startTimer(${i}, 10)">Bắt đầu 10p</button>
+        <button onclick="startTimer(${i}, 20)">Bắt đầu 20p</button>
+        <button onclick="resetTimer(${i})">Reset</button>
+      `;
+      vehicleList.appendChild(div);
+    }
+
+    function speak(text) {
+      if ('speechSynthesis' in window) {
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = 'vi-VN';
+        speechSynthesis.speak(utter);
+      }
+    }
+
+    function startTimer(id, minutes) {
+      clearInterval(timers[id]);
+      const display = document.getElementById(`timer-${id}`);
+      const parent = display.parentElement;
+      parent.classList.remove("warning", "expired");
+
+      let seconds = minutes * 60;
+      let warned = false;
+
+      timers[id] = setInterval(() => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        display.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+        if (seconds === 0) {
+          clearInterval(timers[id]);
+          parent.classList.add("expired");
+          display.textContent = "Hết giờ";
+          speak(`Xe ${id} đã hết giờ`);
+        } else if (seconds === 120 && !warned) {
+          parent.classList.add("warning");
+          speak(`Xe ${id} sắp hết giờ`);
+          warned = true;
+        }
+
+        seconds--;
+      }, 1000);
+    }
+
+    function resetTimer(id) {
+      clearInterval(timers[id]);
+      const display = document.getElementById(`timer-${id}`);
+      const parent = display.parentElement;
+      parent.classList.remove("warning", "expired");
+      display.textContent = "00:00";
+    }
+  </script>
+</body>
+</html>
