@@ -37,17 +37,39 @@
       background: #f2f2f2;
       border-radius: 10px;
       margin: 10px;
-      padding: 10px;
-      width: 240px;
+      padding: 15px;
+      width: 260px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+    .vehicle h3 {
+      margin-top: 0;
     }
     .timer {
-      font-size: 32px;
+      font-size: 40px;
       font-weight: bold;
-      margin: 10px;
+      margin: 15px 0;
+      background: #222;
+      color: #0f0;
+      padding: 10px;
+      border-radius: 8px;
     }
-    .running { background: #c8e6c9; }
-    .warning { background: #fff9c4; }
-    .expired { background: #ffcdd2; }
+    .running { background: #d0f5d0 !important; }
+    .warning { background: #fff8c4 !important; }
+    .expired { background: #ffc4c4 !important; }
+    .paused { background: #b0bec5 !important; }
+    button {
+      padding: 8px 12px;
+      margin: 5px;
+      font-size: 14px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      background-color: #555;
+      color: white;
+    }
+    .hidden-button {
+      display: none;
+    }
     table {
       margin: auto;
       width: 90%;
@@ -57,6 +79,7 @@
     th, td {
       border: 1px solid #ccc;
       padding: 10px;
+      text-align: center;
     }
     th { background: #eee; }
     canvas { margin-top: 20px; }
@@ -90,7 +113,6 @@
   </div>
 
   <script>
-    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyDsf_S3xkV-N0A08D425YQOqMPJuT15FKU",
       authDomain: "taylaibui-tracker.firebaseapp.com",
@@ -133,7 +155,15 @@
     function startTimer(id, minutes) {
       const ref = db.ref('timers/' + id);
       const endAt = Date.now() + minutes * 60000;
-      ref.set({ endAt, minutes });
+      ref.set({ endAt, minutes, paused: false });
+    }
+
+    function pauseTimer(id) {
+      db.ref('timers/' + id + '/paused').set(true);
+    }
+
+    function resumeTimer(id) {
+      db.ref('timers/' + id + '/paused').set(false);
     }
 
     function resetTimer(id) {
@@ -148,8 +178,10 @@
         box.innerHTML = `
           <h3>Xe ${i}</h3>
           <div class="timer" id="timer-${i}">00:00</div>
-          <button onclick="startTimer(${i}, 10)">Bắt đầu 10p</button>
-          <button onclick="startTimer(${i}, 20)">Bắt đầu 20p</button>
+          <button class="btn-start" id="start10-${i}" onclick="startTimer(${i}, 10)">Bắt đầu 10p</button>
+          <button class="btn-start" id="start20-${i}" onclick="startTimer(${i}, 20)">Bắt đầu 20p</button>
+          <button id="pause-${i}" onclick="pauseTimer(${i})">Tạm hoãn</button>
+          <button id="resume-${i}" onclick="resumeTimer(${i})" style="display:none">Tiếp tục</button>
           <button onclick="resetTimer(${i})">Reset</button>
         `;
         document.getElementById("vehicle-list").appendChild(box);
@@ -159,12 +191,28 @@
           const display = document.getElementById("timer-" + i);
           const parent = display.parentElement;
           clearInterval(timers[i]);
-          parent.classList.remove("running", "warning", "expired");
+          parent.classList.remove("running", "warning", "expired", "paused");
+
+          const btn10 = document.getElementById(`start10-${i}`);
+          const btn20 = document.getElementById(`start20-${i}`);
+          const btnPause = document.getElementById(`pause-${i}`);
+          const btnResume = document.getElementById(`resume-${i}`);
 
           if (data && data.endAt) {
             let secondsLeft = Math.floor((data.endAt - Date.now()) / 1000);
-            if (secondsLeft > 0) {
+            if (data.paused) {
+              parent.classList.add("paused");
+              display.textContent = "Tạm hoãn";
+              btn10.style.display = "none";
+              btn20.style.display = "none";
+              btnPause.style.display = "none";
+              btnResume.style.display = "inline-block";
+            } else if (secondsLeft > 0) {
               parent.classList.add("running");
+              btn10.style.display = "none";
+              btn20.style.display = "none";
+              btnPause.style.display = "inline-block";
+              btnResume.style.display = "none";
               timers[i] = setInterval(() => {
                 secondsLeft--;
                 display.textContent = formatTime(secondsLeft);
@@ -182,9 +230,17 @@
             } else {
               display.textContent = "Hết giờ";
               parent.classList.add("expired");
+              btn10.style.display = "inline-block";
+              btn20.style.display = "inline-block";
+              btnPause.style.display = "none";
+              btnResume.style.display = "none";
             }
           } else {
             display.textContent = "00:00";
+            btn10.style.display = "inline-block";
+            btn20.style.display = "inline-block";
+            btnPause.style.display = "none";
+            btnResume.style.display = "none";
           }
         });
       }
