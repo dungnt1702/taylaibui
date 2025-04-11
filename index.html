@@ -2,85 +2,113 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Quản lý thời gian xe khách</title>
+  <title>TAY LÁI BỤI - QUẢN LÝ THỜI GIAN XE</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
+    :root {
+      --bg: #121212;
+      --text: #ffffff;
+      --card: #1e1e1e;
+      --green: #2e7d32;
+      --yellow: #fbc02d;
+      --red: #c62828;
+    }
     body {
       font-family: Arial, sans-serif;
-      background-color: #f9f9f9;
+      background-color: var(--bg);
+      color: var(--text);
       padding: 20px;
-    }
-    h1 {
       text-align: center;
     }
+    h1 {
+      font-size: 28px;
+      margin-bottom: 30px;
+      text-transform: uppercase;
+    }
+    .vehicle-list {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
     .vehicle {
-      background: #fff;
-      border: 1px solid #ccc;
-      border-radius: 8px;
+      background: var(--card);
+      border: 1px solid #333;
+      border-radius: 10px;
       padding: 15px;
       margin: 10px;
-      width: 230px;
-      display: inline-block;
-      vertical-align: top;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      width: 260px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
       transition: background-color 0.3s;
     }
     .vehicle h3 {
       margin: 0 0 10px;
+      font-size: 20px;
     }
     .timer {
-      font-size: 22px;
+      font-size: 38px;
       font-weight: bold;
-      margin: 10px 0;
+      margin: 15px 0;
     }
     .running {
-      background-color: #d4edda !important;
+      background-color: var(--green) !important;
+      color: white;
     }
     .warning {
-      background-color: #fff3cd !important;
+      background-color: var(--yellow) !important;
+      color: black;
     }
     .expired {
-      background-color: #f8d7da !important;
-      color: #721c24;
+      background-color: var(--red) !important;
+      color: white;
     }
     button {
-      padding: 6px 10px;
-      margin: 3px;
+      padding: 8px 12px;
+      margin: 4px;
       font-size: 14px;
       border: none;
       border-radius: 4px;
       cursor: pointer;
+      background-color: #444;
+      color: white;
+    }
+    button:hover {
+      background-color: #666;
     }
     #stats {
       margin-top: 40px;
     }
     table {
       border-collapse: collapse;
+      margin: auto;
       width: 100%;
       max-width: 800px;
-      margin: auto;
     }
     th, td {
-      border: 1px solid #ccc;
-      padding: 8px 12px;
-      text-align: center;
+      border: 1px solid #666;
+      padding: 10px;
     }
     th {
-      background-color: #eee;
+      background-color: #333;
+    }
+    @media (max-width: 600px) {
+      .timer {
+        font-size: 28px;
+      }
+      .vehicle {
+        width: 90%;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>Quản lý thời gian hoạt động xe khách</h1>
-  <div id="vehicle-list"></div>
+  <h1>TAY LÁI BỤI - QUẢN LÝ THỜI GIAN XE</h1>
+  <div class="vehicle-list" id="vehicle-list"></div>
 
   <div id="stats">
     <h2>Thống kê thời lượng sử dụng</h2>
     <table>
       <thead>
-        <tr>
-          <th>Xe</th>
-          <th>Tổng thời lượng (phút)</th>
-        </tr>
+        <tr><th>Xe</th><th>Tổng thời lượng (phút)</th></tr>
       </thead>
       <tbody id="stats-body"></tbody>
     </table>
@@ -89,13 +117,13 @@
   <script>
     const vehicles = 22;
     const timers = {};
-    const totalUsage = {};
+    const totalUsage = JSON.parse(localStorage.getItem('totalUsage')) || {};
+    const remainingTimes = JSON.parse(localStorage.getItem('remainingTimes')) || {};
     const vehicleList = document.getElementById("vehicle-list");
     const statsBody = document.getElementById("stats-body");
 
     for (let i = 1; i <= vehicles; i++) {
-      totalUsage[i] = 0;
-
+      if (!totalUsage[i]) totalUsage[i] = 0;
       const div = document.createElement("div");
       div.className = "vehicle";
       div.innerHTML = `
@@ -123,33 +151,42 @@
         row.innerHTML = `<td>Xe ${i}</td><td>${totalUsage[i]} phút</td>`;
         statsBody.appendChild(row);
       }
+      localStorage.setItem('totalUsage', JSON.stringify(totalUsage));
+    }
+
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
 
     function startTimer(id, minutes) {
       clearInterval(timers[id]);
       const display = document.getElementById(`timer-${id}`);
       const parent = display.parentElement;
-      parent.classList.remove("warning", "expired");
+      parent.classList.remove("running", "warning", "expired");
       parent.classList.add("running");
 
       let seconds = minutes * 60;
       let warned = false;
 
       timers[id] = setInterval(() => {
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        display.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        display.textContent = formatTime(seconds);
+        remainingTimes[id] = seconds;
+        localStorage.setItem('remainingTimes', JSON.stringify(remainingTimes));
 
         if (seconds === 0) {
           clearInterval(timers[id]);
+          delete remainingTimes[id];
           parent.classList.remove("running", "warning");
           parent.classList.add("expired");
           display.textContent = "Hết giờ";
           totalUsage[id] += minutes;
           speak(`Xe số ${id} đã hết thời gian`);
           updateStats();
+          localStorage.setItem('remainingTimes', JSON.stringify(remainingTimes));
         } else if (seconds === 60 && !warned) {
-          parent.classList.remove("running");
+          parent.classList.remove("running", "expired");
           parent.classList.add("warning");
           speak(`Xe số ${id} còn 1 phút`);
           warned = true;
@@ -165,10 +202,21 @@
       const parent = display.parentElement;
       parent.classList.remove("running", "warning", "expired");
       display.textContent = "00:00";
+      delete remainingTimes[id];
+      localStorage.setItem('remainingTimes', JSON.stringify(remainingTimes));
     }
 
-    // Gọi lần đầu để khởi tạo bảng
+    function restoreState() {
+      for (let id in remainingTimes) {
+        if (remainingTimes[id] > 0) {
+          const minutes = Math.ceil(remainingTimes[id] / 60);
+          startTimer(parseInt(id), minutes);
+        }
+      }
+    }
+
     updateStats();
+    restoreState();
   </script>
 </body>
 </html>
