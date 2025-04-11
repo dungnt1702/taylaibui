@@ -22,6 +22,7 @@
       display: inline-block;
       vertical-align: top;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      transition: background-color 0.3s;
     }
     .vehicle h3 {
       margin: 0 0 10px;
@@ -31,12 +32,15 @@
       font-weight: bold;
       margin: 10px 0;
     }
+    .running {
+      background-color: #d4edda !important;
+    }
     .warning {
-      background-color: yellow !important;
+      background-color: #fff3cd !important;
     }
     .expired {
-      background-color: red !important;
-      color: white;
+      background-color: #f8d7da !important;
+      color: #721c24;
     }
     button {
       padding: 6px 10px;
@@ -46,11 +50,22 @@
       border-radius: 4px;
       cursor: pointer;
     }
-    button:hover {
-      opacity: 0.9;
+    #stats {
+      margin-top: 40px;
     }
-    button:active {
-      transform: scale(0.98);
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      max-width: 800px;
+      margin: auto;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px 12px;
+      text-align: center;
+    }
+    th {
+      background-color: #eee;
     }
   </style>
 </head>
@@ -58,12 +73,29 @@
   <h1>Quản lý thời gian hoạt động xe khách</h1>
   <div id="vehicle-list"></div>
 
+  <div id="stats">
+    <h2>Thống kê thời lượng sử dụng</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Xe</th>
+          <th>Tổng thời lượng (phút)</th>
+        </tr>
+      </thead>
+      <tbody id="stats-body"></tbody>
+    </table>
+  </div>
+
   <script>
     const vehicles = 22;
-    const vehicleList = document.getElementById("vehicle-list");
     const timers = {};
+    const totalUsage = {};
+    const vehicleList = document.getElementById("vehicle-list");
+    const statsBody = document.getElementById("stats-body");
 
     for (let i = 1; i <= vehicles; i++) {
+      totalUsage[i] = 0;
+
       const div = document.createElement("div");
       div.className = "vehicle";
       div.innerHTML = `
@@ -84,11 +116,21 @@
       }
     }
 
+    function updateStats() {
+      statsBody.innerHTML = "";
+      for (let i = 1; i <= vehicles; i++) {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td>Xe ${i}</td><td>${totalUsage[i]} phút</td>`;
+        statsBody.appendChild(row);
+      }
+    }
+
     function startTimer(id, minutes) {
       clearInterval(timers[id]);
       const display = document.getElementById(`timer-${id}`);
       const parent = display.parentElement;
       parent.classList.remove("warning", "expired");
+      parent.classList.add("running");
 
       let seconds = minutes * 60;
       let warned = false;
@@ -100,12 +142,16 @@
 
         if (seconds === 0) {
           clearInterval(timers[id]);
+          parent.classList.remove("running", "warning");
           parent.classList.add("expired");
           display.textContent = "Hết giờ";
-          speak(`Xe ${id} đã hết giờ`);
-        } else if (seconds === 120 && !warned) {
+          totalUsage[id] += minutes;
+          speak(`Xe số ${id} đã hết thời gian`);
+          updateStats();
+        } else if (seconds === 60 && !warned) {
+          parent.classList.remove("running");
           parent.classList.add("warning");
-          speak(`Xe ${id} sắp hết giờ`);
+          speak(`Xe số ${id} còn 1 phút`);
           warned = true;
         }
 
@@ -117,9 +163,12 @@
       clearInterval(timers[id]);
       const display = document.getElementById(`timer-${id}`);
       const parent = display.parentElement;
-      parent.classList.remove("warning", "expired");
+      parent.classList.remove("running", "warning", "expired");
       display.textContent = "00:00";
     }
+
+    // Gọi lần đầu để khởi tạo bảng
+    updateStats();
   </script>
 </body>
 </html>
