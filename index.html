@@ -1,16 +1,15 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TAY LÁI BỤI - THEO DÕI XE</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="icon" type="image/png" href="logo.png" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
   <style>
     body { background: #fff; font-family: Arial, sans-serif; text-align: center; padding: 20px; color: #111; }
-    h1 { font-size: 28px; margin-bottom: 10px; }
     .tabs button { padding: 10px 20px; margin: 5px; background: #ccc; border: none; border-radius: 5px; cursor: pointer; }
     .tabs button.active { background: #555; color: #fff; }
     .vehicle { display: inline-block; background: #f2f2f2; border-radius: 10px; margin: 10px; padding: 15px; width: 260px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); }
@@ -20,237 +19,110 @@
     .warning { background: #fff8c4 !important; }
     .expired { background: #ffc4c4 !important; }
     .paused { background: #b0bec5 !important; }
+    .inactive { background: #e0e0e0 !important; opacity: 0.6; }
     button { padding: 8px 12px; margin: 5px; font-size: 14px; border: none; border-radius: 4px; cursor: pointer; background-color: #555; color: white; }
-    table { margin: auto; width: 90%; max-width: 800px; border-collapse: collapse; }
-    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
-    th { background: #eee; }
-    canvas { margin-top: 20px; }
-    img.logo { height: 80px; margin-bottom: 10px; }
+    .filter-tabs button { margin: 0 3px; }
   </style>
 </head>
 <body>
-  <img src="logo.png" alt="Tay Lai Bui" class="logo">
+  <img src="logo.png" alt="Tay Lai Bui" style="height: 80px; margin-bottom: 10px;" />
   <h1>TAY LÁI BỤI - THEO DÕI XE</h1>
-
   <div class="tabs">
-    <button onclick="showTab('control')" id="tab-control" class="active">THEO DÕI XE</button>
-    <button onclick="showTab('report')" id="tab-report">BÁO CÁO</button>
+    <button onclick="setFilter('all')" id="tab-all" class="active">TẤT CẢ XE</button>
+    <button onclick="setFilter('active')" id="tab-active">XE ĐANG CHẠY</button>
+    <button onclick="setFilter('inactive')" id="tab-inactive">XE NGỪNG</button>
   </div>
+  <div id="vehicle-list"></div>
 
-  <div id="control-tab">
-    <div id="vehicle-list"></div>
-  </div>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDsf_S3xkV-N0A08D425YQOqMPJuT15FKU",
+      authDomain: "taylaibui-tracker.firebaseapp.com",
+      databaseURL: "https://taylaibui-tracker-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "taylaibui-tracker",
+      storageBucket: "taylaibui-tracker.appspot.com",
+      messagingSenderId: "1004195839154",
+      appId: "1:1004195839154:web:bf2b1056c3506343549dab"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-  <div id="report-tab" style="display:none;">
-    <select id="report-filter" onchange="renderReport()">
-      <option value="day">Theo ngày</option>
-      <option value="week">7 ngày</option>
-      <option value="month">Theo tháng</option>
-    </select>
-    <table>
-      <thead><tr><th>Xe</th><th>Thời gian (phút)</th></tr></thead>
-      <tbody id="report-body"></tbody>
-    </table>
-    <canvas id="reportChart" height="150"></canvas>
-  </div>
+    const vehicles = 22;
+    let vehicleData = {};
+    let currentFilter = 'all';
 
-<script>
-const firebaseConfig = {
-  apiKey: "AIzaSyDsf_S3xkV-N0A08D425YQOqMPJuT15FKU",
-  authDomain: "taylaibui-tracker.firebaseapp.com",
-  databaseURL: "https://taylaibui-tracker-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "taylaibui-tracker",
-  storageBucket: "taylaibui-tracker.appspot.com",
-  messagingSenderId: "1004195839154",
-  appId: "1:1004195839154:web:bf2b1056c3506343549dab"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
-const vehicles = 22;
-let timers = {};
-let chart;
-
-function speak(text) {
-  if ('speechSynthesis' in window) {
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = 'vi-VN';
-    speechSynthesis.speak(utter);
-  }
-}
-
-function formatTime(seconds) {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-}
-
-function showTab(tab) {
-  document.getElementById("control-tab").style.display = tab === 'control' ? 'block' : 'none';
-  document.getElementById("report-tab").style.display = tab === 'report' ? 'block' : 'none';
-  document.getElementById("tab-control").classList.toggle('active', tab === 'control');
-  document.getElementById("tab-report").classList.toggle('active', tab === 'report');
-  if (tab === 'report') renderReport();
-}
-
-function startTimer(id, minutes) {
-  const ref = db.ref('timers/' + id);
-  const endAt = Date.now() + minutes * 60000;
-  ref.set({ endAt, minutes, paused: false, warned5: false, warned1: false });
-}
-
-function pauseTimer(id) {
-  db.ref('timers/' + id).once('value', snap => {
-    const data = snap.val();
-    if (data && data.endAt) {
-      const remaining = Math.floor((data.endAt - Date.now()) / 1000);
-      db.ref('timers/' + id).update({ paused: true, remaining });
+    function speak(text) {
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = 'vi-VN';
+      speechSynthesis.speak(utter);
     }
-  });
-}
 
-function resumeTimer(id) {
-  db.ref('timers/' + id).once('value', snap => {
-    const data = snap.val();
-    if (data && data.remaining) {
-      const endAt = Date.now() + data.remaining * 1000;
-      db.ref('timers/' + id).update({ paused: false, endAt });
+    function formatTime(seconds) {
+      const m = Math.floor(seconds / 60);
+      const s = seconds % 60;
+      return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     }
-  });
-}
 
-function resetTimer(id) {
-  db.ref('timers/' + id).remove();
-}
+    function setFilter(filter) {
+      currentFilter = filter;
+      document.querySelectorAll('.tabs button').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(`tab-${filter}`).classList.add('active');
+      renderVehicles();
+    }
 
-function setupRealtimeSync() {
-  for (let i = 1; i <= vehicles; i++) {
-    const ref = db.ref('timers/' + i);
-    const box = document.createElement("div");
-    box.className = "vehicle";
-    box.innerHTML = `
-      <h3>Xe ${i}</h3>
-      <div class="timer" id="timer-${i}">00:00</div>
-      <button id="start10-${i}" onclick="startTimer(${i}, 10)">Bắt đầu 10p</button>
-      <button id="start20-${i}" onclick="startTimer(${i}, 20)">Bắt đầu 20p</button>
-      <button id="pause-${i}" onclick="pauseTimer(${i})">Tạm hoãn</button>
-      <button id="resume-${i}" onclick="resumeTimer(${i})" style="display:none;">Tiếp tục</button>
-      <button onclick="resetTimer(${i})">Reset</button>
-    `;
-    document.getElementById("vehicle-list").appendChild(box);
+    function toggleVehicle(id, active) {
+      db.ref('timers/' + id + '/active').set(active);
+    }
 
-    ref.on('value', snapshot => {
-      const data = snapshot.val();
-      const display = document.getElementById("timer-" + i);
-      const parent = display.parentElement;
-      clearInterval(timers[i]);
-      parent.classList.remove("running", "warning", "expired", "paused");
+    function renderVehicles() {
+      const container = document.getElementById('vehicle-list');
+      container.innerHTML = '';
+      const entries = Object.entries(vehicleData)
+        .filter(([_, data]) => {
+          if (!data) return false;
+          if (currentFilter === 'active') return data.active;
+          if (currentFilter === 'inactive') return !data.active;
+          return true;
+        })
+        .sort(([_, a], [__, b]) => {
+          const timeA = a.endAt ? Math.max((a.endAt - Date.now()) / 1000, 0) : 99999;
+          const timeB = b.endAt ? Math.max((b.endAt - Date.now()) / 1000, 0) : 99999;
+          return timeA - timeB;
+        });
 
-      const btn10 = document.getElementById(`start10-${i}`);
-      const btn20 = document.getElementById(`start20-${i}`);
-      const btnPause = document.getElementById(`pause-${i}`);
-      const btnResume = document.getElementById(`resume-${i}`);
+      entries.forEach(([id, data]) => {
+        const vid = Number(id);
+        const div = document.createElement('div');
+        div.className = 'vehicle';
+        if (!data.active) div.classList.add('inactive');
 
-      if (data && data.endAt) {
-        let secondsLeft = Math.floor((data.endAt - Date.now()) / 1000);
-        let warned5 = data.warned5 || false;
-        let warned1 = data.warned1 || false;
+        const secondsLeft = data.endAt ? Math.floor((data.endAt - Date.now()) / 1000) : 0;
+        const displayTime = data.paused ? 'Tạm hoãn' : (secondsLeft > 0 ? formatTime(secondsLeft) : 'Hết giờ');
 
-        if (data.paused) {
-          parent.classList.add("paused");
-          display.textContent = "Tạm hoãn";
-          btn10.style.display = "none";
-          btn20.style.display = "none";
-          btnPause.style.display = "none";
-          btnResume.style.display = "inline-block";
-        } else if (secondsLeft > 0) {
-          parent.classList.add("running");
-          btn10.style.display = "none";
-          btn20.style.display = "none";
-          btnPause.style.display = "inline-block";
-          btnResume.style.display = "none";
-          display.textContent = formatTime(secondsLeft);
+        div.innerHTML = `
+          <h3>Xe ${vid}</h3>
+          <div class="timer">${displayTime}</div>
+          <button onclick="toggleVehicle(${vid}, ${!data.active})">
+            ${data.active ? 'TẮT XE' : 'BẬT XE'}
+          </button>
+        `;
 
-          timers[i] = setInterval(() => {
-            secondsLeft--;
-            display.textContent = formatTime(secondsLeft);
-            if (secondsLeft === 300 && !warned5) {
-              speak(`Xe số ${i} còn 5 phút`);
-              db.ref('timers/' + i + '/warned5').set(true);
-              warned5 = true;
-            }
-            if (secondsLeft === 60 && !warned1) {
-              speak(`Xe số ${i} còn 1 phút`);
-              parent.classList.add("warning");
-              db.ref('timers/' + i + '/warned1').set(true);
-              warned1 = true;
-            }
-            if (secondsLeft <= 0) {
-              clearInterval(timers[i]);
-              parent.classList.remove("running", "warning");
-              parent.classList.add("expired");
-              display.textContent = "Hết giờ";
-              speak(`Xe số ${i} đã hết thời gian`);
-              if (data.minutes) {
-                db.ref('usageLogs/' + new Date().toISOString().split('T')[0] + '/' + i)
-                  .transaction(val => (val || 0) + data.minutes);
-              }
-            }
-          }, 1000);
-        } else {
-          display.textContent = "Hết giờ";
-          parent.classList.add("expired");
-          btn10.style.display = "inline-block";
-          btn20.style.display = "inline-block";
-          btnPause.style.display = "none";
-          btnResume.style.display = "none";
-        }
-      } else {
-        display.textContent = "00:00";
-        btn10.style.display = "inline-block";
-        btn20.style.display = "inline-block";
-        btnPause.style.display = "none";
-        btnResume.style.display = "none";
-      }
-    });
-  }
-}
+        container.appendChild(div);
+      });
+    }
 
-function renderReport() {
-  const filter = document.getElementById("report-filter").value;
-  const now = new Date();
-  const ref = db.ref("usageLogs");
-  ref.once('value', snap => {
-    const data = snap.val() || {};
-    const totals = Array(vehicles + 1).fill(0);
-    for (let date in data) {
-      const d = new Date(date);
-      let include = false;
-      if (filter === "day") include = date === now.toISOString().split("T")[0];
-      if (filter === "week") include = (now - d) / (1000 * 60 * 60 * 24) <= 6;
-      if (filter === "month") include = d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-      if (include) {
-        for (let id in data[date]) {
-          totals[+id] += data[date][id];
-        }
+    function syncData() {
+      for (let i = 1; i <= vehicles; i++) {
+        db.ref('timers/' + i).on('value', snap => {
+          const data = snap.val() || { active: false };
+          if (!('active' in data)) data.active = false;
+          vehicleData[i] = data;
+          renderVehicles();
+        });
       }
     }
-    const tbody = document.getElementById("report-body");
-    tbody.innerHTML = totals.map((v, i) => i > 0 ? `<tr><td>Xe ${i}</td><td>${v}</td></tr>` : '').join('');
-    const ctx = document.getElementById("reportChart").getContext("2d");
-    if (chart) chart.destroy();
-    chart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: Array.from({length: vehicles}, (_, i) => `Xe ${i+1}`),
-        datasets: [{ label: "Phút", data: totals.slice(1), backgroundColor: '#4caf50' }]
-      },
-      options: { responsive: true, scales: { y: { beginAtZero: true } } }
-    });
-  });
-}
 
-setupRealtimeSync();
-</script>
+    syncData();
+  </script>
 </body>
 </html>
