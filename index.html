@@ -19,18 +19,6 @@
     <button onclick="setFilter('inactive')" id="tab-inactive">XE NGỪNG</button>
   </div>
   <div id="vehicle-list"></div>
-  <div id="report-tab" style="display:none;">
-    <select id="report-filter" onchange="renderReport()">
-      <option value="day">Theo ngày</option>
-      <option value="week">7 ngày</option>
-      <option value="month">Theo tháng</option>
-    </select>
-    <table>
-      <thead><tr><th>Xe</th><th>Thời gian (phút)</th></tr></thead>
-      <tbody id="report-body"></tbody>
-    </table>
-    <canvas id="reportChart" height="150"></canvas>
-  </div>
   <script src="script.js"></script>
 </body>
 </html>
