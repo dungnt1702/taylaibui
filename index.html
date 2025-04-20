@@ -5,27 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TAY LÁI BỤI - THEO DÕI XE</title>
   <link rel="icon" type="image/png" href="logo.png" />
+  <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-  <style>
-    body { background: #fff; font-family: Arial, sans-serif; text-align: center; padding: 20px; color: #111; }
-    .tabs button { padding: 10px 20px; margin: 5px; background: #ccc; border: none; border-radius: 5px; cursor: pointer; }
-    .tabs button.active { background: #555; color: #fff; }
-    .vehicle { display: inline-block; background: #f2f2f2; border-radius: 10px; margin: 10px; padding: 15px; width: 260px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); }
-    .vehicle h3 { margin-top: 0; }
-    .timer { font-size: 40px; font-weight: bold; margin: 15px 0; background: #222; color: #0f0; padding: 10px; border-radius: 8px; }
-    .running { background: #d0f5d0 !important; }
-    .warning { background: #fff8c4 !important; }
-    .expired { background: #ffc4c4 !important; }
-    .paused { background: #b0bec5 !important; }
-    .inactive { background: #e0e0e0 !important; opacity: 0.6; }
-    button { padding: 8px 12px; margin: 5px; font-size: 14px; border: none; border-radius: 4px; cursor: pointer; background-color: #555; color: white; }
-    .filter-tabs button { margin: 0 3px; }
-  </style>
 </head>
 <body>
-  <img src="logo.png" alt="Tay Lai Bui" style="height: 80px; margin-bottom: 10px;" />
+  <img src="logo.png" alt="Tay Lai Bui" class="logo">
   <h1>TAY LÁI BỤI - THEO DÕI XE</h1>
   <div class="tabs">
     <button onclick="setFilter('all')" id="tab-all" class="active">TẤT CẢ XE</button>
@@ -33,96 +19,6 @@
     <button onclick="setFilter('inactive')" id="tab-inactive">XE NGỪNG</button>
   </div>
   <div id="vehicle-list"></div>
-
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyDsf_S3xkV-N0A08D425YQOqMPJuT15FKU",
-      authDomain: "taylaibui-tracker.firebaseapp.com",
-      databaseURL: "https://taylaibui-tracker-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "taylaibui-tracker",
-      storageBucket: "taylaibui-tracker.appspot.com",
-      messagingSenderId: "1004195839154",
-      appId: "1:1004195839154:web:bf2b1056c3506343549dab"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    const vehicles = 22;
-    let vehicleData = {};
-    let currentFilter = 'all';
-
-    function speak(text) {
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = 'vi-VN';
-      speechSynthesis.speak(utter);
-    }
-
-    function formatTime(seconds) {
-      const m = Math.floor(seconds / 60);
-      const s = seconds % 60;
-      return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-    }
-
-    function setFilter(filter) {
-      currentFilter = filter;
-      document.querySelectorAll('.tabs button').forEach(btn => btn.classList.remove('active'));
-      document.getElementById(`tab-${filter}`).classList.add('active');
-      renderVehicles();
-    }
-
-    function toggleVehicle(id, active) {
-      db.ref('timers/' + id + '/active').set(active);
-    }
-
-    function renderVehicles() {
-      const container = document.getElementById('vehicle-list');
-      container.innerHTML = '';
-      const entries = Object.entries(vehicleData)
-        .filter(([_, data]) => {
-          if (!data) return false;
-          if (currentFilter === 'active') return data.active;
-          if (currentFilter === 'inactive') return !data.active;
-          return true;
-        })
-        .sort(([_, a], [__, b]) => {
-          const timeA = a.endAt ? Math.max((a.endAt - Date.now()) / 1000, 0) : 99999;
-          const timeB = b.endAt ? Math.max((b.endAt - Date.now()) / 1000, 0) : 99999;
-          return timeA - timeB;
-        });
-
-      entries.forEach(([id, data]) => {
-        const vid = Number(id);
-        const div = document.createElement('div');
-        div.className = 'vehicle';
-        if (!data.active) div.classList.add('inactive');
-
-        const secondsLeft = data.endAt ? Math.floor((data.endAt - Date.now()) / 1000) : 0;
-        const displayTime = data.paused ? 'Tạm hoãn' : (secondsLeft > 0 ? formatTime(secondsLeft) : 'Hết giờ');
-
-        div.innerHTML = `
-          <h3>Xe ${vid}</h3>
-          <div class="timer">${displayTime}</div>
-          <button onclick="toggleVehicle(${vid}, ${!data.active})">
-            ${data.active ? 'TẮT XE' : 'BẬT XE'}
-          </button>
-        `;
-
-        container.appendChild(div);
-      });
-    }
-
-    function syncData() {
-      for (let i = 1; i <= vehicles; i++) {
-        db.ref('timers/' + i).on('value', snap => {
-          const data = snap.val() || { active: false };
-          if (!('active' in data)) data.active = false;
-          vehicleData[i] = data;
-          renderVehicles();
-        });
-      }
-    }
-
-    syncData();
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
