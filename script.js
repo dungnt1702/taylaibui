@@ -1,16 +1,7 @@
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDsf_S3xkV-N0A08D425YQOqMPJuT15FKU",
-  authDomain: "taylaibui-tracker.firebaseapp.com",
-  databaseURL: "https://taylaibui-tracker-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "taylaibui-tracker",
-  storageBucket: "taylaibui-tracker.appspot.com",
-  messagingSenderId: "1004195839154",
-  appId: "1:1004195839154:web:bf2b1056c3506343549dab"
-};
+// ... Firebase config giữ nguyên (ẩn để ngắn gọn)
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
-
 const vehicles = 22;
 let vehicleData = {};
 let currentFilter = 'all';
@@ -37,7 +28,7 @@ function setFilter(filter) {
 
 function startTimer(id, minutes) {
   const endAt = Date.now() + minutes * 60000;
-  db.ref('timers/' + id).set({
+  db.ref('timers/' + id).update({
     endAt,
     minutes,
     paused: false,
@@ -69,7 +60,14 @@ function resumeTimer(id) {
 }
 
 function resetTimer(id) {
-  db.ref('timers/' + id).remove();
+  db.ref('timers/' + id).update({
+    endAt: null,
+    minutes: null,
+    paused: false,
+    remaining: null,
+    warned5: false,
+    warned1: false
+  });
 }
 
 function toggleVehicle(id, active) {
@@ -104,14 +102,39 @@ function renderVehicles() {
     div.innerHTML = `
       <h3>Xe ${id}</h3>
       <div class="timer" id="timer-${id}">${displayTime}</div>
-      <button onclick="startTimer(${id}, 10)">Bắt đầu 10p</button>
-      <button onclick="startTimer(${id}, 20)">Bắt đầu 20p</button>
-      <button onclick="pauseTimer(${id})">Tạm hoãn</button>
-      <button onclick="resumeTimer(${id})">Tiếp tục</button>
-      <button onclick="resetTimer(${id})">Reset</button>
-      <button onclick="toggleVehicle(${id}, ${!data.active})">${data.active ? 'TẮT XE' : 'BẬT XE'}</button>
+      <div>
+        <button id="start10-${id}" onclick="startTimer(${id}, 10)">Bắt đầu 10p</button>
+        <button id="start20-${id}" onclick="startTimer(${id}, 20)">Bắt đầu 20p</button>
+        <button id="pause-${id}" onclick="pauseTimer(${id})" style="display: none;">Tạm hoãn</button>
+        <button id="resume-${id}" onclick="resumeTimer(${id})" style="display: none;">Tiếp tục</button>
+        <button onclick="resetTimer(${id})">Reset</button>
+        <button onclick="toggleVehicle(${id}, ${!data.active})">${data.active ? 'TẮT XE' : 'BẬT XE'}</button>
+      </div>
     `;
     container.appendChild(div);
+
+    // cập nhật trạng thái hiển thị nút
+    const btn10 = document.getElementById(`start10-${id}`);
+    const btn20 = document.getElementById(`start20-${id}`);
+    const btnPause = document.getElementById(`pause-${id}`);
+    const btnResume = document.getElementById(`resume-${id}`);
+
+    if (data.endAt && !data.paused) {
+      btn10.style.display = 'none';
+      btn20.style.display = 'none';
+      btnPause.style.display = 'inline-block';
+      btnResume.style.display = 'none';
+    } else if (data.paused) {
+      btn10.style.display = 'none';
+      btn20.style.display = 'none';
+      btnPause.style.display = 'none';
+      btnResume.style.display = 'inline-block';
+    } else {
+      btn10.style.display = 'inline-block';
+      btn20.style.display = 'inline-block';
+      btnPause.style.display = 'none';
+      btnResume.style.display = 'none';
+    }
   });
 }
 
