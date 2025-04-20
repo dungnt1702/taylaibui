@@ -25,13 +25,13 @@ function speak(text) {
 function formatTime(seconds) {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
-  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  return m.toString().padStart(2, '0') + ':' + s.toString().padStart(2, '0');
 }
 
 function setFilter(filter) {
   currentFilter = filter;
   document.querySelectorAll('.tabs button').forEach(btn => btn.classList.remove('active'));
-  document.getElementById(`tab-${filter}`).classList.add('active');
+  document.getElementById('tab-' + filter).classList.add('active');
   renderVehicles();
 }
 
@@ -123,7 +123,6 @@ function syncData() {
       renderVehicles();
       clearInterval(timers[i]);
       const display = document.getElementById('timer-' + i);
-      const parent = display?.parentElement;
       if (!display || data.paused || !data.endAt) return;
       let secondsLeft = Math.floor((data.endAt - Date.now()) / 1000);
       let warned5 = data.warned5 || false;
@@ -133,19 +132,19 @@ function syncData() {
         secondsLeft--;
         if (display) display.textContent = formatTime(secondsLeft);
         if (secondsLeft === 300 && !warned5) {
-          speak(`Xe số ${i} còn 5 phút`);
+          speak('Xe số ' + i + ' còn 5 phút');
           db.ref('timers/' + i + '/warned5').set(true);
           warned5 = true;
         }
         if (secondsLeft === 60 && !warned1) {
-          speak(`Xe số ${i} còn 1 phút`);
+          speak('Xe số ' + i + ' còn 1 phút');
           db.ref('timers/' + i + '/warned1').set(true);
           warned1 = true;
         }
         if (secondsLeft <= 0) {
           clearInterval(timers[i]);
           if (display) display.textContent = 'Hết giờ';
-          speak(`Xe số ${i} đã hết thời gian`);
+          speak('Xe số ' + i + ' đã hết thời gian');
           if (data.minutes) {
             db.ref('usageLogs/' + new Date().toISOString().split('T')[0] + '/' + i)
               .transaction(val => (val || 0) + data.minutes);
