@@ -58,6 +58,18 @@
       localStorage.removeItem('user');
       location.href = 'index.html';
     }
+
+    window.onload = () => {
+      if (!window.isLoggedIn) {
+        setTimeout(() => {
+          document.querySelectorAll('#vehicle-list button').forEach(btn => {
+            btn.disabled = true;
+            btn.style.opacity = 0.4;
+            btn.title = "Vui lòng đăng nhập để thao tác";
+          });
+        }, 500);
+      }
+    }
   </script>
   <script src="script.js"></script>
 </body>

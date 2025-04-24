@@ -1,1 +1,1 @@
-// Nội dung script.js đã được cập nhật trong quá trình trước đó
+// nội dung script.js ở đây
