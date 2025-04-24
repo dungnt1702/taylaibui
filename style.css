@@ -40,7 +40,7 @@ body {
   color: #111;
 }
 .vehicle .timer {
-  font-size: 56px;
+  font-size: 72px;
   margin: 20px 0;
   font-weight: bold;
   color: #111;
@@ -90,6 +90,12 @@ body {
   opacity: 0.5;
   pointer-events: none;
 }
+.vehicle.inactive .toggle-btn {
+  pointer-events: auto;
+  opacity: 1;
+  background-color: #4caf50;
+  color: white;
+}
 .vehicle .toggle-btn {
   background-color: #4caf50;
   color: white;
@@ -99,4 +105,9 @@ body {
 }
 .vehicle .btn-hidden {
   display: none;
+}
+.vehicle .controls {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
