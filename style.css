@@ -24,7 +24,7 @@ body {
 }
 .vehicle {
   display: inline-block;
-  background: white;
+  background: #e0e0e0; /* mặc định - xe chưa chạy */
   padding: 20px;
   margin: 15px;
   border-radius: 12px;
@@ -33,6 +33,15 @@ body {
   transition: all 0.3s ease-in-out;
   text-align: center;
   position: relative;
+}
+.vehicle.running {
+  background-color: #cce5ff; /* xanh blue */
+}
+.vehicle.warning {
+  background-color: #fff3cd; /* vàng khi còn 1 phút */
+}
+.vehicle.expired {
+  background-color: #f8d7da; /* đỏ khi hết giờ */
 }
 .vehicle h3 {
   margin-top: 0;
@@ -71,16 +80,9 @@ body {
 .vehicle button:hover {
   background: #ccc;
 }
-.vehicle.running {
-  border-left: 6px solid #4caf50;
-}
-.vehicle.warning {
-  background-color: #fff3cd;
-  border-left: 6px solid #ffc107;
-}
-.vehicle.expired {
-  background-color: #f8d7da;
-  border-left: 6px solid #dc3545;
+.vehicle .highlight {
+  background-color: #4caf50;
+  color: white;
 }
 .vehicle.paused {
   border-left: 6px solid #6c757d;
@@ -112,4 +114,9 @@ body {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+.vehicle .controls-row {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
 }
