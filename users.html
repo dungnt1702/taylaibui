@@ -1,0 +1,67 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Quản lý người dùng</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>QUẢN LÝ NGƯỜI DÙNG</h1>
+  <div id="user-list"></div>
+  <h3>Thông tin cá nhân</h3>
+  <input id="newname" placeholder="Tên mới" />
+  <button onclick="changeName()">Đổi tên</button>
+  <br/><br/>
+  <input id="newpass" placeholder="Mật khẩu mới" type="password" />
+  <button onclick="changePassword()">Đổi mật khẩu</button>
+  <p id="status" style="color:green;"></p>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDsf_S3xkV-N0A08D425YQOqMPJuT15FKU",
+      authDomain: "taylaibui-tracker.firebaseapp.com",
+      databaseURL: "https://taylaibui-tracker-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "taylaibui-tracker",
+      storageBucket: "taylaibui-tracker.appspot.com",
+      messagingSenderId: "1004195839154",
+      appId: "1:1004195839154:web:bf2b1056c3506343549dab"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const currentUser = JSON.parse(localStorage.getItem('user'));
+    if (!currentUser) location.href = 'login.html';
+    const isAdmin = currentUser.phone === '0974036579';
+
+    function changePassword() {
+      const newpass = document.getElementById('newpass').value;
+      db.ref('users/' + currentUser.phone + '/password').set(newpass);
+      document.getElementById('status').innerText = "Đổi mật khẩu thành công!";
+    }
+
+    function changeName() {
+      const newname = document.getElementById('newname').value;
+      db.ref('users/' + currentUser.phone + '/name').set(newname);
+      currentUser.name = newname;
+      localStorage.setItem('user', JSON.stringify(currentUser));
+      document.getElementById('status').innerText = "Đổi tên thành công!";
+    }
+
+    async function loadUsers() {
+      if (!isAdmin) return;
+      const snap = await db.ref('users').get();
+      const users = snap.val();
+      let html = '<table><tr><th>Tên</th><th>SĐT</th></tr>';
+      for (let key in users) {
+        html += `<tr><td>${users[key].name}</td><td>${key}</td></tr>`;
+      }
+      html += '</table>';
+      document.getElementById('user-list').innerHTML = html;
+    }
+
+    loadUsers();
+  </script>
+</body>
+</html>

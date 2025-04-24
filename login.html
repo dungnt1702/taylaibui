@@ -1,0 +1,47 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Đăng nhập - Tay Lái Bụi</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>ĐĂNG NHẬP</h1>
+  <div>
+    <input id="phone" placeholder="Số điện thoại" /><br/>
+    <input id="password" placeholder="Mật khẩu" type="password" /><br/>
+    <button onclick="login()">Đăng nhập</button>
+    <p id="error" style="color:red;"></p>
+  </div>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDsf_S3xkV-N0A08D425YQOqMPJuT15FKU",
+      authDomain: "taylaibui-tracker.firebaseapp.com",
+      databaseURL: "https://taylaibui-tracker-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "taylaibui-tracker",
+      storageBucket: "taylaibui-tracker.appspot.com",
+      messagingSenderId: "1004195839154",
+      appId: "1:1004195839154:web:bf2b1056c3506343549dab"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    async function login() {
+      const phone = document.getElementById('phone').value.trim();
+      const password = document.getElementById('password').value;
+      const snap = await db.ref('users/' + phone).get();
+      const user = snap.val();
+      if (user && user.password === password) {
+        localStorage.setItem('user', JSON.stringify(user));
+        window.location.href = "index.html";
+      } else {
+        document.getElementById('error').innerText = "Số điện thoại hoặc mật khẩu sai!";
+      }
+    }
+  </script>
+</body>
+</html>
