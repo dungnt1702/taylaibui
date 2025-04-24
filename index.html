@@ -1,12 +1,10 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TAY LÁI BỤI - THEO DÕI XE</title>
-  <link rel="icon" type="image/png" href="logo.png" />
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -24,14 +22,7 @@
   </script>
 </head>
 <body>
-  <div style="position:absolute; top:10px; right:10px; text-align:right;">
-    <div id="user-info"></div>
-    <button onclick="location.href='login.html'" id="login-btn" style="display:none">Đăng nhập</button>
-    <button onclick="location.href='users.html'" id="edit-profile-btn" style="display:none">Sửa thông tin</button>
-    <button onclick="logout()" id="logout-btn" style="display:none">Đăng xuất</button>
-  </div>
-
-  <img src="logo.png" alt="Tay Lai Bui" class="logo">
+  <img src="logo.png" class="logo" alt="Logo Tay Lai Bui" />
   <h1>TAY LÁI BỤI - THEO DÕI XE</h1>
   <div class="tabs">
     <button onclick="setFilter('all')" id="tab-all">TẤT CẢ XE</button>
@@ -39,47 +30,6 @@
     <button onclick="setFilter('inactive')" id="tab-inactive">XE NGỪNG</button>
   </div>
   <div id="vehicle-list"></div>
-
-  <script>
-    const user = JSON.parse(localStorage.getItem('user'));
-    const userInfoDiv = document.getElementById('user-info');
-    const logoutBtn = document.getElementById('logout-btn');
-    const loginBtn = document.getElementById('login-btn');
-    const editBtn = document.getElementById('edit-profile-btn');
-
-    if (user) {
-      userInfoDiv.innerHTML = `<strong>${user.name}</strong><br><small>${user.phone}</small>`;
-      logoutBtn.style.display = 'inline-block';
-      editBtn.style.display = 'inline-block';
-      window.isLoggedIn = true;
-      window.isAdmin = user.phone === '0974036579';
-    } else {
-      userInfoDiv.innerHTML = '<small>Chế độ xem công khai</small>';
-      loginBtn.style.display = 'inline-block';
-      window.isLoggedIn = false;
-      window.isAdmin = false;
-    }
-
-    function logout() {
-      localStorage.removeItem('user');
-      location.href = 'index.html';
-    }
-
-    window.onload = () => {
-      setTimeout(() => {
-        if (!window.isLoggedIn) {
-          document.querySelectorAll('#vehicle-list button').forEach(btn => {
-            btn.disabled = true;
-            btn.style.opacity = 0.4;
-            btn.title = "Vui lòng đăng nhập để thao tác";
-          });
-        }
-
-        const savedFilter = localStorage.getItem('activeTab') || 'all';
-        setFilter(savedFilter);
-      }, 500);
-    }
-  </script>
   <script src="script.js"></script>
 </body>
 </html>

@@ -1,3 +1,4 @@
+/* style.css */
 body {
   font-family: Arial, sans-serif;
   background: #f5f5f5;
@@ -27,29 +28,43 @@ body {
   padding: 20px;
   margin: 15px;
   border-radius: 12px;
-  width: 260px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  width: 280px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.3);
   transition: all 0.3s ease-in-out;
   text-align: center;
+  position: relative;
 }
 .vehicle h3 {
   margin-top: 0;
-  font-size: 22px;
-  color: #222;
+  font-size: 24px;
+  color: #111;
 }
 .vehicle .timer {
-  font-size: 40px;
-  margin: 16px 0;
+  font-size: 56px;
+  margin: 20px 0;
   font-weight: bold;
-  color: #222;
+  color: #111;
+  transition: color 0.3s ease-in-out;
+}
+.vehicle.warning .timer {
+  animation: blink 1s step-start 0s infinite;
+  color: #b36b00;
+}
+.vehicle.expired .timer {
+  color: #a94442;
+}
+@keyframes blink {
+  50% {
+    opacity: 0.3;
+  }
 }
 .vehicle button {
   margin: 6px;
-  padding: 8px 12px;
-  font-size: 15px;
+  padding: 10px 14px;
+  font-size: 16px;
   cursor: pointer;
   border: none;
-  border-radius: 5px;
+  border-radius: 6px;
   background: #eee;
   transition: background 0.3s;
 }
