@@ -97,31 +97,25 @@ function resetTimer(id) {
 }
 
 function syncData() {
+  setInterval(() => {
+    for (let i = 1; i <= vehicles; i++) {
+      const data = vehicleData[i];
+      if (!data || data.paused || !data.endAt) continue;
+      const secondsLeft = Math.floor((data.endAt - Date.now()) / 1000);
+      const display = document.getElementById(`timer-${i}`);
+      if (!display) continue;
+      if (secondsLeft <= 0) {
+        display.textContent = 'Hết giờ';
+      } else {
+        display.textContent = formatTime(secondsLeft);
+      }
+    }
+  }, 1000);
+
   for (let i = 1; i <= vehicles; i++) {
     db.ref('timers/' + i).on('value', snap => {
       vehicleData[i] = snap.val() || {};
       renderVehicles();
-      clearInterval(timers[i]);
-
-      if (vehicleData[i].endAt && !vehicleData[i].paused) {
-        let secondsLeft = Math.floor((vehicleData[i].endAt - Date.now()) / 1000);
-        const display = document.getElementById('timer-' + i);
-
-        timers[i] = setInterval(() => {
-          if (!display) return;
-          display.textContent = formatTime(secondsLeft);
-
-          if (secondsLeft === 60) speak('Xe số ' + i + ' còn 1 phút');
-          if (secondsLeft === 300) speak('Xe số ' + i + ' còn 5 phút');
-          if (secondsLeft <= 0) {
-            display.textContent = 'Hết giờ';
-            speak('Xe số ' + i + ' đã hết thời gian');
-            clearInterval(timers[i]);
-          }
-
-          secondsLeft--;
-        }, 1000);
-      }
     });
   }
 }
