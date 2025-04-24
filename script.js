@@ -1,10 +1,9 @@
-
 // ... Firebase config giữ nguyên (ẩn để ngắn gọn)
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const vehicles = 22;
 let vehicleData = {};
-let currentFilter = 'all';
+let currentFilter = localStorage.getItem('activeTab') || 'all';
 let timers = {};
 
 function speak(text) {
@@ -21,6 +20,7 @@ function formatTime(seconds) {
 
 function setFilter(filter) {
   currentFilter = filter;
+  localStorage.setItem('activeTab', filter);
   document.querySelectorAll('.tabs button').forEach(btn => btn.classList.remove('active'));
   document.getElementById('tab-' + filter).classList.add('active');
   renderVehicles();
@@ -96,6 +96,15 @@ function renderVehicles() {
     div.className = 'vehicle';
     if (!data.active) div.classList.add('inactive');
     const secondsLeft = data.endAt ? Math.floor((data.endAt - Date.now()) / 1000) : 0;
+
+    if (!data.paused && data.endAt) {
+      if (secondsLeft <= 60) div.classList.add('warning');
+      if (secondsLeft <= 0) div.classList.add('expired');
+      else div.classList.add('running');
+    } else if (data.paused) {
+      div.classList.add('paused');
+    }
+
     const displayTime = data.paused ? 'Tạm hoãn' :
       (data.endAt ? (secondsLeft > 0 ? formatTime(secondsLeft) : 'Hết giờ') : '00:00');
 
@@ -103,8 +112,8 @@ function renderVehicles() {
       <h3>Xe ${id}</h3>
       <div class="timer" id="timer-${id}">${displayTime}</div>
       <div>
-        <button id="start10-${id}" onclick="startTimer(${id}, 10)">Bắt đầu 10p</button>
-        <button id="start20-${id}" onclick="startTimer(${id}, 20)">Bắt đầu 20p</button>
+        <button id="start10-${id}" onclick="startTimer(${id}, 15)">Bắt đầu 15p</button>
+        <button id="start20-${id}" onclick="startTimer(${id}, 30)">Bắt đầu 30p</button>
         <button id="pause-${id}" onclick="pauseTimer(${id})" style="display: none;">Tạm hoãn</button>
         <button id="resume-${id}" onclick="resumeTimer(${id})" style="display: none;">Tiếp tục</button>
         <button onclick="resetTimer(${id})">Reset</button>
@@ -113,7 +122,6 @@ function renderVehicles() {
     `;
     container.appendChild(div);
 
-    // cập nhật trạng thái hiển thị nút
     const btn10 = document.getElementById(`start10-${id}`);
     const btn20 = document.getElementById(`start20-${id}`);
     const btnPause = document.getElementById(`pause-${id}`);
