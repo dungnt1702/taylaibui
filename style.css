@@ -84,8 +84,19 @@ body {
 }
 .vehicle.paused {
   border-left: 6px solid #6c757d;
+  background-color: #f0f0f0;
 }
 .vehicle.inactive {
   opacity: 0.5;
   pointer-events: none;
+}
+.vehicle .toggle-btn {
+  background-color: #4caf50;
+  color: white;
+}
+.vehicle.inactive .toggle-btn {
+  background-color: #888;
+}
+.vehicle .btn-hidden {
+  display: none;
 }
