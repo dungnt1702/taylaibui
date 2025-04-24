@@ -88,6 +88,8 @@ body {
 }
 .vehicle.inactive {
   opacity: 0.5;
+}
+.vehicle.inactive button {
   pointer-events: none;
 }
 .vehicle.inactive .toggle-btn {
