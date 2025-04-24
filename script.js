@@ -1,14 +1,6 @@
 let speechEnabled = false;
 document.addEventListener('click', () => { speechEnabled = true; }, { once: true });
 
-// ... Firebase config giữ nguyên (ẩn để ngắn gọn)
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const vehicles = 22;
-let vehicleData = {};
-let currentFilter = localStorage.getItem('activeTab') || 'all';
-let timers = {};
-
 function speak(text) {
   if (!speechEnabled) return;
   const utter = new SpeechSynthesisUtterance(text);
@@ -17,10 +9,17 @@ function speak(text) {
 }
 
 function formatTime(seconds) {
+  if (seconds < 0) seconds = 0;
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
   return m.toString().padStart(2, '0') + ':' + s.toString().padStart(2, '0');
 }
+
+let currentFilter = 'all';
+let timers = {};
+let vehicleData = {};
+const vehicles = 22;
+const db = firebase.database();
 
 function setFilter(filter) {
   currentFilter = filter;
@@ -30,23 +29,53 @@ function setFilter(filter) {
   renderVehicles();
 }
 
+function renderVehicles() {
+  const container = document.getElementById('vehicle-list');
+  container.innerHTML = '';
+  for (let i = 1; i <= vehicles; i++) {
+    const data = vehicleData[i] || {};
+    if (currentFilter === 'active' && !data.active) continue;
+    if (currentFilter === 'inactive' && data.active) continue;
+
+    const secondsLeft = data.endAt ? Math.floor((data.endAt - Date.now()) / 1000) : 0;
+    const div = document.createElement('div');
+    div.className = 'vehicle';
+    if (data.active === false) div.classList.add('inactive');
+    if (secondsLeft <= 60 && secondsLeft > 0) div.classList.add('warning');
+    if (secondsLeft <= 0 && data.endAt) div.classList.add('expired');
+    if (data.paused) div.classList.add('paused');
+    if (data.endAt && !data.paused) div.classList.add('running');
+
+    div.innerHTML = `
+      <h3>Xe ${i}</h3>
+      <div class="timer" id="timer-${i}">${data.paused ? 'Tạm hoãn' : (data.endAt ? formatTime(secondsLeft) : '00:00')}</div>
+      <div>
+        <button onclick="toggleVehicle(${i})" class="toggle-btn">${data.active === false ? 'Bật xe' : 'Tắt xe'}</button>
+        <button onclick="startTimer(${i}, 15)" class="${data.endAt ? 'btn-hidden' : ''}" id="btn15-${i}">Bắt đầu 15p</button>
+        <button onclick="startTimer(${i}, 30)" class="${data.endAt ? 'btn-hidden' : ''}" id="btn30-${i}">Bắt đầu 30p</button>
+        <button onclick="pauseTimer(${i})" id="pause-${i}" class="${data.paused || !data.endAt ? 'btn-hidden' : ''}">Tạm hoãn</button>
+        <button onclick="resumeTimer(${i})" id="resume-${i}" class="${!data.paused ? 'btn-hidden' : ''}">Tiếp tục</button>
+        <button onclick="resetTimer(${i})">Reset</button>
+      </div>
+    `;
+    container.appendChild(div);
+  }
+}
+
+function toggleVehicle(id) {
+  const active = !(vehicleData[id] && vehicleData[id].active === false);
+  db.ref('timers/' + id).update({ active: !active });
+}
+
 function startTimer(id, minutes) {
   const endAt = Date.now() + minutes * 60000;
-  db.ref('timers/' + id).update({
-    endAt,
-    minutes,
-    paused: false,
-    remaining: null,
-    warned5: false,
-    warned1: false,
-    active: true
-  });
+  db.ref('timers/' + id).set({ endAt, active: true, minutes, paused: false });
 }
 
 function pauseTimer(id) {
-  db.ref('timers/' + id).once('value', snap => {
+  db.ref('timers/' + id).once('value').then(snap => {
     const data = snap.val();
-    if (data && data.endAt) {
+    if (data) {
       const remaining = Math.floor((data.endAt - Date.now()) / 1000);
       db.ref('timers/' + id).update({ paused: true, remaining });
     }
@@ -54,7 +83,7 @@ function pauseTimer(id) {
 }
 
 function resumeTimer(id) {
-  db.ref('timers/' + id).once('value', snap => {
+  db.ref('timers/' + id).once('value').then(snap => {
     const data = snap.val();
     if (data && data.remaining) {
       const endAt = Date.now() + data.remaining * 1000;
@@ -64,129 +93,41 @@ function resumeTimer(id) {
 }
 
 function resetTimer(id) {
-  db.ref('timers/' + id).update({
-    endAt: null,
-    minutes: null,
-    paused: false,
-    remaining: null,
-    warned5: false,
-    warned1: false
-  });
-}
-
-function toggleVehicle(id, active) {
-  db.ref('timers/' + id + '/active').set(active);
-}
-
-function renderVehicles() {
-  const container = document.getElementById('vehicle-list');
-  container.innerHTML = '';
-
-  const entries = Array.from({ length: vehicles }, (_, i) => {
-    const id = i + 1;
-    return [id, vehicleData[id] || { active: false }];
-  }).filter(([_, data]) => {
-    if (currentFilter === 'active') return data.active;
-    if (currentFilter === 'inactive') return !data.active;
-    return true;
-  }).sort(([_, a], [__, b]) => {
-    const timeA = a.endAt ? Math.max((a.endAt - Date.now()) / 1000, 0) : 99999;
-    const timeB = b.endAt ? Math.max((b.endAt - Date.now()) / 1000, 0) : 99999;
-    return timeA - timeB;
-  });
-
-  entries.forEach(([id, data]) => {
-    const div = document.createElement('div');
-    div.className = 'vehicle';
-    if (!data.active) div.classList.add('inactive');
-    const secondsLeft = data.endAt ? Math.floor((data.endAt - Date.now()) / 1000) : 0;
-
-    if (!data.paused && data.endAt) {
-      if (secondsLeft <= 60) div.classList.add('warning');
-      if (secondsLeft <= 0) div.classList.add('expired');
-      else div.classList.add('running');
-    } else if (data.paused) {
-      div.classList.add('paused');
-    }
-
-    const displayTime = data.paused ? 'Tạm hoãn' :
-      (data.endAt ? (secondsLeft > 0 ? formatTime(secondsLeft) : 'Hết giờ') : '00:00');
-
-    div.innerHTML = `
-      <h3>Xe ${id}</h3>
-      <div class="timer" id="timer-${id}">${displayTime}</div>
-      <div>
-        <button id="start10-${id}" onclick="startTimer(${id}, 15)">Bắt đầu 15p</button>
-        <button id="start20-${id}" onclick="startTimer(${id}, 30)">Bắt đầu 30p</button>
-        <button id="pause-${id}" onclick="pauseTimer(${id})" style="display: none;">Tạm hoãn</button>
-        <button id="resume-${id}" onclick="resumeTimer(${id})" style="display: none;">Tiếp tục</button>
-        <button onclick="resetTimer(${id})">Reset</button>
-        <button onclick="toggleVehicle(${id}, ${!data.active})">${data.active ? 'TẮT XE' : 'BẬT XE'}</button>
-      </div>
-    `;
-    container.appendChild(div);
-
-    const btn10 = document.getElementById(`start10-${id}`);
-    const btn20 = document.getElementById(`start20-${id}`);
-    const btnPause = document.getElementById(`pause-${id}`);
-    const btnResume = document.getElementById(`resume-${id}`);
-
-    if (data.endAt && !data.paused) {
-      btn10.style.display = 'none';
-      btn20.style.display = 'none';
-      btnPause.style.display = 'inline-block';
-      btnResume.style.display = 'none';
-    } else if (data.paused) {
-      btn10.style.display = 'none';
-      btn20.style.display = 'none';
-      btnPause.style.display = 'none';
-      btnResume.style.display = 'inline-block';
-    } else {
-      btn10.style.display = 'inline-block';
-      btn20.style.display = 'inline-block';
-      btnPause.style.display = 'none';
-      btnResume.style.display = 'none';
-    }
-  });
+  db.ref('timers/' + id).update({ endAt: null, paused: false, remaining: null });
 }
 
 function syncData() {
   for (let i = 1; i <= vehicles; i++) {
     db.ref('timers/' + i).on('value', snap => {
-      const data = snap.val() || { active: false };
-      vehicleData[i] = data;
+      vehicleData[i] = snap.val() || {};
       renderVehicles();
       clearInterval(timers[i]);
-      const display = document.getElementById('timer-' + i);
-      if (!display || data.paused || !data.endAt) return;
-      let secondsLeft = Math.floor((data.endAt - Date.now()) / 1000);
-      let warned5 = data.warned5 || false;
-      let warned1 = data.warned1 || false;
 
-      timers[i] = setInterval(() => {
-        secondsLeft--;
-        if (display) display.textContent = formatTime(secondsLeft);
-        if (secondsLeft === 300 && !warned5) {
-          speak('Xe số ' + i + ' còn 5 phút');
-          db.ref('timers/' + i + '/warned5').set(true);
-          warned5 = true;
-        }
-        if (secondsLeft === 60 && !warned1) {
-          speak('Xe số ' + i + ' còn 1 phút');
-          db.ref('timers/' + i + '/warned1').set(true);
-          warned1 = true;
-        }
-        if (secondsLeft <= 0) {
-          clearInterval(timers[i]);
-          if (display) display.textContent = 'Hết giờ';
-          speak('Xe số ' + i + ' đã hết thời gian');
-          if (data.minutes) {
-            db.ref('usageLogs/' + new Date().toISOString().split('T')[0] + '/' + i)
-              .transaction(val => (val || 0) + data.minutes);
+      if (vehicleData[i].endAt && !vehicleData[i].paused) {
+        let secondsLeft = Math.floor((vehicleData[i].endAt - Date.now()) / 1000);
+        const display = document.getElementById('timer-' + i);
+
+        timers[i] = setInterval(() => {
+          if (!display) return;
+          display.textContent = formatTime(secondsLeft);
+
+          if (secondsLeft === 60) speak('Xe số ' + i + ' còn 1 phút');
+          if (secondsLeft === 300) speak('Xe số ' + i + ' còn 5 phút');
+          if (secondsLeft <= 0) {
+            display.textContent = 'Hết giờ';
+            speak('Xe số ' + i + ' đã hết thời gian');
+            clearInterval(timers[i]);
           }
-        }
-      }, 1000);
+
+          secondsLeft--;
+        }, 1000);
+      }
     });
   }
 }
-syncData();
+
+window.onload = () => {
+  const savedFilter = localStorage.getItem('activeTab') || 'all';
+  setFilter(savedFilter);
+  syncData();
+};
