@@ -104,8 +104,19 @@ function syncData() {
       const secondsLeft = Math.floor((data.endAt - Date.now()) / 1000);
       const display = document.getElementById(`timer-${i}`);
       if (!display) continue;
+
+      if (secondsLeft === 300 && !data.warned5) {
+        speak(`Xe số ${i} còn 5 phút`);
+        db.ref('timers/' + i).update({ warned5: true });
+      }
+      if (secondsLeft === 60 && !data.warned1) {
+        speak(`Xe số ${i} còn 1 phút`);
+        db.ref('timers/' + i).update({ warned1: true });
+      }
+
       if (secondsLeft <= 0) {
         display.textContent = 'Hết giờ';
+        speak(`Xe số ${i} đã hết thời gian`);
       } else {
         display.textContent = formatTime(secondsLeft);
       }
