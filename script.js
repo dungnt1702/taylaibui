@@ -47,17 +47,24 @@ function renderVehicles() {
     if (data.endAt && !data.paused) div.classList.add('running');
 
     div.innerHTML = `
-      <h3>Xe ${i}</h3>
-      <div class="timer" id="timer-${i}">${data.paused ? 'Tạm hoãn' : (data.endAt ? formatTime(secondsLeft) : '00:00')}</div>
-      <div>
-        <button onclick="toggleVehicle(${i})" class="toggle-btn">${data.active === false ? 'Bật xe' : 'Tắt xe'}</button>
-        <button onclick="startTimer(${i}, 15)" class="${data.endAt ? 'btn-hidden' : ''}" id="btn15-${i}">Bắt đầu 15p</button>
-        <button onclick="startTimer(${i}, 30)" class="${data.endAt ? 'btn-hidden' : ''}" id="btn30-${i}">Bắt đầu 30p</button>
-        <button onclick="pauseTimer(${i})" id="pause-${i}" class="${data.paused || !data.endAt ? 'btn-hidden' : ''}">Tạm hoãn</button>
-        <button onclick="resumeTimer(${i})" id="resume-${i}" class="${!data.paused ? 'btn-hidden' : ''}">Tiếp tục</button>
-        <button onclick="resetTimer(${i})">Reset</button>
-      </div>
-    `;
+  <h3>Xe ${i}</h3>
+  <div class="timer" id="timer-${i}">${data.paused ? 'Tạm hoãn' : (data.endAt ? formatTime(secondsLeft) : '00:00')}</div>
+  <div class="controls">
+    <div class="controls-row">
+      <button onclick="startTimer(${i}, 15)" class="highlight ${data.endAt ? 'btn-hidden' : ''}" id="btn15-${i}">Bắt đầu 15p</button>
+      <button onclick="startTimer(${i}, 30)" class="highlight ${data.endAt ? 'btn-hidden' : ''}" id="btn30-${i}">Bắt đầu 30p</button>
+    </div>
+    <div class="controls-row">
+      <button onclick="resetTimer(${i})">Reset</button>
+      <button onclick="toggleVehicle(${i})" class="toggle-btn">${data.active === false ? 'Bật xe' : 'Tắt xe'}</button>
+    </div>
+    <div class="controls-row">
+      <button onclick="pauseTimer(${i})" id="pause-${i}" class="${data.paused || !data.endAt ? 'btn-hidden' : ''}">Tạm hoãn</button>
+      <button onclick="resumeTimer(${i})" id="resume-${i}" class="${!data.paused ? 'btn-hidden' : ''}">Tiếp tục</button>
+    </div>
+  </div>
+`;
+
     container.appendChild(div);
   }
 }
