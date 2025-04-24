@@ -1,5 +1,5 @@
 
-// ... Firebase config giữ nguyên (ẩn để ngắn gọn)
+// Firebase cấu hình (đã có sẵn trong index.html)
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const vehicles = 22;
@@ -103,8 +103,8 @@ function renderVehicles() {
       <h3>Xe ${id}</h3>
       <div class="timer" id="timer-${id}">${displayTime}</div>
       <div>
-        <button id="start10-${id}" onclick="startTimer(${id}, 10)">Bắt đầu 10p</button>
-        <button id="start20-${id}" onclick="startTimer(${id}, 20)">Bắt đầu 20p</button>
+        <button id="start15-${id}" onclick="startTimer(${id}, 15)">Bắt đầu 15p</button>
+        <button id="start30-${id}" onclick="startTimer(${id}, 30)">Bắt đầu 30p</button>
         <button id="pause-${id}" onclick="pauseTimer(${id})" style="display: none;">Tạm hoãn</button>
         <button id="resume-${id}" onclick="resumeTimer(${id})" style="display: none;">Tiếp tục</button>
         <button onclick="resetTimer(${id})">Reset</button>
@@ -113,25 +113,24 @@ function renderVehicles() {
     `;
     container.appendChild(div);
 
-    // cập nhật trạng thái hiển thị nút
-    const btn10 = document.getElementById(`start10-${id}`);
-    const btn20 = document.getElementById(`start20-${id}`);
+    const btn15 = document.getElementById(`start15-${id}`);
+    const btn30 = document.getElementById(`start30-${id}`);
     const btnPause = document.getElementById(`pause-${id}`);
     const btnResume = document.getElementById(`resume-${id}`);
 
     if (data.endAt && !data.paused) {
-      btn10.style.display = 'none';
-      btn20.style.display = 'none';
+      btn15.style.display = 'none';
+      btn30.style.display = 'none';
       btnPause.style.display = 'inline-block';
       btnResume.style.display = 'none';
     } else if (data.paused) {
-      btn10.style.display = 'none';
-      btn20.style.display = 'none';
+      btn15.style.display = 'none';
+      btn30.style.display = 'none';
       btnPause.style.display = 'none';
       btnResume.style.display = 'inline-block';
     } else {
-      btn10.style.display = 'inline-block';
-      btn20.style.display = 'inline-block';
+      btn15.style.display = 'inline-block';
+      btn30.style.display = 'inline-block';
       btnPause.style.display = 'none';
       btnResume.style.display = 'none';
     }
@@ -177,4 +176,27 @@ function syncData() {
     });
   }
 }
+
+const originalSetFilter = setFilter;
+setFilter = function(filter) {
+  localStorage.setItem('tab', filter);
+  originalSetFilter(filter);
+};
+setFilter(localStorage.getItem('tab') || 'all');
+
+const observer = new MutationObserver(() => {
+  Object.entries(vehicleData).forEach(([id, data]) => {
+    const box = document.getElementById('timer-' + id)?.parentElement;
+    if (box) {
+      box.classList.remove("warning", "expired");
+      if (data && data.endAt && !data.paused) {
+        const secondsLeft = Math.floor((data.endAt - Date.now()) / 1000);
+        if (secondsLeft <= 60 && secondsLeft > 0) box.classList.add("warning");
+        if (secondsLeft <= 0) box.classList.add("expired");
+      }
+    }
+  });
+});
+observer.observe(document.getElementById("vehicle-list"), { childList: true, subtree: true });
+
 syncData();
