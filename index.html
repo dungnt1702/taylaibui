@@ -26,6 +26,7 @@
 <body>
   <div style="position:absolute; top:10px; right:10px; text-align:right;">
     <div id="user-info"></div>
+    <button onclick="location.href='login.html'" id="login-btn" style="display:none">Đăng nhập</button>
     <button onclick="logout()" id="logout-btn" style="display:none">Đăng xuất</button>
   </div>
 
@@ -42,6 +43,7 @@
     const user = JSON.parse(localStorage.getItem('user'));
     const userInfoDiv = document.getElementById('user-info');
     const logoutBtn = document.getElementById('logout-btn');
+    const loginBtn = document.getElementById('login-btn');
 
     if (user) {
       userInfoDiv.innerHTML = `<strong>${user.name}</strong><br><small>${user.phone}</small>`;
@@ -50,6 +52,7 @@
       window.isAdmin = user.phone === '0974036579';
     } else {
       userInfoDiv.innerHTML = '<small>Chế độ xem công khai</small>';
+      loginBtn.style.display = 'inline-block';
       window.isLoggedIn = false;
       window.isAdmin = false;
     }

@@ -1,1 +1,1 @@
-// nội dung script.js ở đây
+// script logic placeholder
