@@ -4,6 +4,8 @@ body {
   margin: 20px;
   background: #f5f5f5;
 }
+
+/* Header layout */
 header {
   position: sticky;
   top: 0;
@@ -15,16 +17,19 @@ header {
   justify-content: space-between;
   gap: 10px;
 }
+
 .header-left {
   display: flex;
   align-items: center;
   gap: 10px;
 }
+
 .header-logo {
   width: 42px;
   height: 42px;
   object-fit: contain;
 }
+
 h1 {
   margin: 0;
   font-size: 28px;
@@ -33,6 +38,8 @@ h1 {
   flex: 1;
   text-align: center;
 }
+
+/* User display (icon and name) in header */
 .user-info {
   display: flex;
   align-items: center;
@@ -42,13 +49,17 @@ h1 {
   color: #000;
   margin-right: 10px;
 }
+
 .user-icon {
   font-size: 24px;
   color: #ff9800;
 }
+
 .user-name {
   font-size: 16px;
 }
+
+/* Logout button */
 .logout-btn {
   text-decoration: none;
   background: #e53935;
@@ -57,14 +68,18 @@ h1 {
   border-radius: 4px;
   font-weight: bold;
 }
+
 .logout-btn:hover {
   opacity: 0.85;
 }
+
+/* Navigation menu styling */
 .nav-menu {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
 }
+
 .nav-menu a {
   padding: 8px 14px;
   background: #ddd;
@@ -73,112 +88,21 @@ h1 {
   color: #000;
   font-weight: bold;
 }
+
 .nav-menu a.active {
   background: #ff9800;
   color: #fff;
 }
-/* User and profile containers */
-.user-container,
-.profile-container {
-  max-width: 900px;
-  margin: 30px auto;
-  padding: 20px;
-  background: #ffffff;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  border-radius: 8px;
-  text-align: left;
-}
-.user-container h2,
-.profile-container h2 {
-  margin-top: 0;
-  color: #f57c00;
-  text-align: center;
-}
-.user-form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
-  margin-top: 10px;
-}
-.user-form label {
-  flex: 1 1 200px;
-  font-weight: bold;
-}
-.user-form input[type="text"],
-.user-form input[type="password"] {
-  width: 100%;
-  padding: 6px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
-}
-.user-form button {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  background: #2196f3;
-  color: #fff;
-  font-size: 14px;
-}
-.user-form button:hover {
-  opacity: 0.9;
-}
-.user-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-  overflow-x: auto;
-  display: block;
-}
-.user-table th,
-.user-table td {
-  padding: 8px 12px;
-  border-bottom: 1px solid #eee;
-  text-align: center;
-  white-space: nowrap;
-}
-.user-table thead {
-  background: #f0f0f0;
-}
-.user-table tr:nth-child(even) {
-  background: #fafafa;
-}
-.user-table button {
-  padding: 6px 10px;
-  font-size: 13px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  background: #2196f3;
-  color: #fff;
-}
-.message {
-  color: green;
-  text-align: center;
-  margin-top: 10px;
-}
-.profile-container form label {
-  display: block;
-  margin-top: 12px;
-  font-weight: bold;
-}
-.profile-container form input {
-  width: 100%;
-  padding: 8px;
-  margin-top: 4px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
-}
-.profile-container form button {
-  margin-top: 20px;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  background-color: #2196f3;
-  color: #fff;
-  cursor: pointer;
-  width: 100%;
+
+/* Responsive nav for mobile: initially hidden, toggled via 'open' class */
+@media (max-width: 768px) {
+  .nav-menu {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    margin-top: 10px;
+  }
+  .nav-menu.open {
+    display: flex;
+  }
 }

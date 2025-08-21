@@ -8,7 +8,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 // Read filter and admin status
 $filter = $_GET['filter'] ?? 'all';
-$isAdmin = !empty($_SESSION['is_admin']) && intval($_SESSION['is_admin']) === 1;
+$isAdmin = !empty($_SESSION['is_admin']);
 $showUserPage = ($filter === 'user');
 // Greeting script after login (optional)
 $greetingScript = '';
@@ -24,27 +24,26 @@ if (isset($_SESSION['greet']) && $_SESSION['greet'] === true) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TAY LÁI BỤI SÓC SƠN</title>
-  <!-- Main site stylesheet (must exist in the repository) -->
+  <!-- Main site stylesheet -->
   <link rel="stylesheet" href="style.css">
+  <?php if ($showUserPage): ?>
   <!-- Additional styles for user pages -->
   <link rel="stylesheet" href="user_style.css">
+  <?php endif; ?>
 </head>
 <body>
   <header>
-    <div class="header-top">
-      <div class="header-left">
-        <button id="menu-toggle" class="menu-toggle">&#9776;</button>
-        <img src="logo.png" alt="TLB" class="header-logo" />
-      </div>
-      <h1>TAY LÁI BỤI SÓC SƠN</h1>
-      <?php $userName = htmlspecialchars($_SESSION['user_name'] ?? ''); ?>
-      <a href="?filter=user" class="user-info">
-        <span class="user-icon">👤</span>
-        <span class="user-name"><?= $userName ?></span>
-      </a>
-  <!-- Logout button -->
-  <a href="logout.php" class="logout-btn">Đăng xuất</a>
+    <div class="header-left">
+      <button id="menu-toggle" class="menu-toggle">&#9776;</button>
+      <img src="logo.png" alt="TLB" class="header-logo" />
     </div>
+    <h1>TAY LÁI BỤI SÓC SƠN</h1>
+    <?php $userName = htmlspecialchars($_SESSION['user_name'] ?? ''); ?>
+    <a href="?filter=user" class="user-info">
+      <span class="user-icon">👤</span>
+      <span class="user-name"><?= $userName ?></span>
+    </a>
+    <a href="logout.php" class="logout-btn">Đăng xuất</a>
     <!-- Navigation -->
     <nav id="nav-menu" class="nav-menu">
       <a href="?filter=all" id="tab-all" class="<?= $filter == 'all' ? 'active' : '' ?>">Tất cả xe</a>
@@ -88,7 +87,9 @@ if (isset($_SESSION['greet']) && $_SESSION['greet'] === true) {
       </div>
     </div>
   </div>
+  <?php if (!$showUserPage): ?>
   <script src="script.js"></script>
+  <?php endif; ?>
   <?php if ($greetingScript) echo $greetingScript; ?>
 </body>
 </html>
