@@ -1,4 +1,4 @@
-/* Base styles originally from style.css */
+/* style.css */
 body {
   font-family: Arial, sans-serif;
   background: #f5f5f5;
@@ -252,6 +252,49 @@ h1 {
 .nav-menu a.active {
   background: #333;
   color: white;
+}
+
+/* Menu toggle button for mobile navigation */
+.menu-toggle {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #333;
+  padding: 4px;
+  /* hide the menu toggle on larger screens */
+  display: none;
+}
+
+/* Responsive navigation: hide nav on small screens and show when toggled */
+@media (max-width: 768px) {
+  .nav-menu {
+    display: none;
+    flex-direction: column;
+    justify-content: flex-start;
+    width: 100%;
+    margin-top: 10px;
+  }
+  .nav-menu.open {
+    display: flex;
+  }
+  /* Show the menu toggle on small screens */
+  .menu-toggle {
+    display: block;
+  }
+  /* Stack header items on small screens */
+  header {
+    flex-wrap: wrap;
+  }
+  h1 {
+    flex-basis: 100%;
+    text-align: center;
+    margin-top: 10px;
+  }
+  .user-info,
+  .logout-btn {
+    margin-top: 10px;
+  }
 }
 
 /* User/profile containers for admin and regular users */
