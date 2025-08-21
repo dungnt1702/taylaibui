@@ -1,8 +1,8 @@
 <?php
 // This file simply redirects the user to the correct page depending on their role.
 session_start();
-// If neither user_id nor user_name is present, redirect to login page
-if (!isset($_SESSION['user_id']) && !isset($_SESSION['user_name'])) {
+// Require login session or remember cookie; otherwise redirect to login page
+if (!(isset($_SESSION['user_id']) || isset($_SESSION['user_name']) || isset($_COOKIE['remember_login']))) {
   header('Location: login.php');
   exit;
 }

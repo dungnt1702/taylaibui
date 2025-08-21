@@ -35,6 +35,8 @@ header .header-top {
   width: 42px;
   height: 42px;
   object-fit: contain;
+  /* Create space from the left edge on desktop */
+  margin-left: 10px;
 }
 
 /* User information displayed in the top right of the header */
@@ -45,6 +47,8 @@ header .header-top {
   font-weight: bold;
   color: #000;
   cursor: pointer;
+  /* Space from right edge on desktop */
+  margin-right: 10px;
 }
 .user-icon {
   font-size: 24px;
@@ -81,7 +85,8 @@ header .header-top h1 {
 /* Navigation bar holds all tab links. Align items to the left. */
 .nav-menu {
   display: flex;
-  justify-content: flex-start;
+  /* Center the navigation on desktop */
+  justify-content: center;
   gap: 4px;
   width: 100%;
   list-style: none;

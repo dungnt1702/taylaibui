@@ -2,6 +2,10 @@
 // End the session and show a farewell message before redirecting to the login page.
 session_start();
 session_destroy();
+// Remove the remember_login cookie so that the user will need to login again on this device
+if (isset($_COOKIE['remember_login'])) {
+  setcookie('remember_login', '', time() - 3600, '/');
+}
 ?>
 <!DOCTYPE html>
 <html lang="vi">

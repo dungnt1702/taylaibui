@@ -2,7 +2,7 @@
 require_once 'db.php';
 session_start();
 // Determine if the user is logged in. If not, we'll show a login modal instead of redirecting.
-$requiresLogin = !isset($_SESSION['user_id']) && !isset($_SESSION['user_name']);
+$requiresLogin = !(isset($_SESSION['user_id']) || isset($_SESSION['user_name']) || isset($_COOKIE['remember_login']));
 // If logged in and user is admin, redirect to the manager page
 if (!$requiresLogin && isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1) {
   header('Location: user_manager.php');
@@ -28,7 +28,7 @@ $username = !$requiresLogin ? ($_SESSION['user_name'] ?? '') : '';
       <!-- Show user icon; link back to this page -->
       <a href="user_profile.php" class="user-info">
         <!-- Use a boy and girl smiling icon instead of showing the username -->
-        <span class="user-icon">👦👧</span>
+        <span class="user-icon">😁</span>
       </a>
     </div>
     <nav id="nav-menu" class="nav-menu">
