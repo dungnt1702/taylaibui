@@ -1,7 +1,7 @@
 <?php
 session_start();
-// Deny access if user is not logged in
-if (!isset($_SESSION['user_id'])) {
+// Deny access if user is not logged in (require either user_id or user_name)
+if (!isset($_SESSION['user_id']) && !isset($_SESSION['user_name'])) {
   http_response_code(403);
   echo "Forbidden";
   exit;

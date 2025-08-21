@@ -2,7 +2,7 @@
 require_once 'db.php';
 session_start();
 // Determine if the user is logged in; used to decide whether to show the login modal
-$requiresLogin = !isset($_SESSION['user_id']);
+$requiresLogin = !isset($_SESSION['user_id']) && !isset($_SESSION['user_name']);
 // Show greeting alert after successful login
 $greetingScript = '';
 if (!$requiresLogin && isset($_SESSION['greet']) && $_SESSION['greet'] === true) {
