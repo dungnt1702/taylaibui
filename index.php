@@ -26,10 +26,6 @@ if (isset($_SESSION['greet']) && $_SESSION['greet'] === true) {
   <title>TAY LÁI BỤI SÓC SƠN</title>
   <!-- Main site stylesheet -->
   <link rel="stylesheet" href="style.css">
-  <?php if ($showUserPage): ?>
-  <!-- Additional styles for user pages -->
-  <link rel="stylesheet" href="user_style.css">
-  <?php endif; ?>
 </head>
 <body>
   <header>

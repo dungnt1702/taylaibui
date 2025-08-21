@@ -1,35 +1,189 @@
-/* Basic reset and body styling */
+/* Base styles originally from style.css */
 body {
   font-family: Arial, sans-serif;
-  margin: 20px;
   background: #f5f5f5;
+  margin: 40px;
+  text-align: center;
 }
+
+/* Logo used on classic HTML version (kept for backward compatibility) */
+.logo {
+  height: 80px;
+  margin-bottom: 10px;
+}
+
+/* Tab buttons (legacy) */
+.tabs button {
+  padding: 10px 16px;
+  margin: 4px;
+  background: #ddd;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.tabs button.active {
+  background: #333;
+  color: white;
+}
+
+/* Vehicle card styling */
+.vehicle {
+  display: inline-block;
+  background: #e0e0e0; /* mặc định - xe chưa chạy */
+  padding: 20px;
+  margin: 15px;
+  border-radius: 12px;
+  width: 280px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+  transition: all 0.3s ease-in-out;
+  text-align: center;
+  position: relative;
+}
+
+.vehicle.running {
+  background-color: #cce5ff; /* xanh blue */
+}
+
+.vehicle.warning {
+  background-color: #fff3cd; /* vàng khi còn 1 phút */
+}
+
+.vehicle.expired {
+  background-color: #f8d7da; /* đỏ khi hết giờ */
+}
+
+.vehicle h3 {
+  margin-top: 0;
+  font-size: 24px;
+  color: #111;
+}
+
+.vehicle .timer {
+  font-size: 72px;
+  margin: 20px 0;
+  font-weight: bold;
+  color: #111;
+  transition: color 0.3s ease-in-out;
+}
+
+.vehicle.warning .timer {
+  animation: blink 1s step-start 0s infinite;
+  color: #b36b00;
+}
+
+.vehicle.expired .timer {
+  color: #a94442;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.vehicle button {
+  margin: 6px;
+  padding: 10px 14px;
+  font-size: 16px;
+  cursor: pointer;
+  border: none;
+  border-radius: 6px;
+  background: #eee;
+  transition: background 0.3s;
+}
+
+.vehicle button:hover {
+  background: #ccc;
+}
+
+/* Highlight button used on vehicle cards */
+.vehicle .highlight {
+  background-color: #4caf50;
+  color: white;
+}
+
+.vehicle.paused {
+  border-left: 6px solid #6c757d;
+  background-color: #f0f0f0;
+}
+
+.vehicle.inactive {
+  opacity: 0.5;
+}
+
+.vehicle.inactive button {
+  pointer-events: none;
+}
+
+.vehicle.inactive .toggle-btn {
+  pointer-events: auto;
+  opacity: 1;
+  background-color: #4caf50;
+  color: white;
+}
+
+.vehicle .toggle-btn {
+  background-color: #4caf50;
+  color: white;
+}
+
+.vehicle.inactive .toggle-btn {
+  background-color: #888;
+}
+
+.vehicle .btn-hidden {
+  display: none;
+}
+
+.vehicle .controls {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.vehicle .controls-row {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* ------------------------------------------------------------------ */
+/*
+ * New styles for the PHP version with header, navigation and user pages.
+ * These additions integrate seamlessly with the original layout without
+ * overriding vehicle styling.
+ */
 
 /* Header layout */
 header {
-  position: sticky;
-  top: 0;
-  z-index: 999;
-  background: #f5f5f5;
-  padding: 10px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  margin-bottom: 20px;
+  background: #f5f5f5;
+  padding: 10px 12px;
+  position: sticky;
+  top: 0;
+  z-index: 999;
 }
 
+/* Left section of the header containing menu toggle and logo */
 .header-left {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
+/* Logo image used in header */
 .header-logo {
-  width: 42px;
   height: 42px;
+  width: 42px;
   object-fit: contain;
 }
 
+/* Main title in header */
 h1 {
   margin: 0;
   font-size: 28px;
@@ -46,7 +200,7 @@ h1 {
   gap: 6px;
   text-decoration: none;
   font-weight: bold;
-  color: #000;
+  color: #333;
   margin-right: 10px;
 }
 
@@ -67,42 +221,157 @@ h1 {
   padding: 8px 12px;
   border-radius: 4px;
   font-weight: bold;
+  margin-left: 10px;
 }
 
 .logout-btn:hover {
   opacity: 0.85;
 }
 
-/* Navigation menu styling */
+/* Navigation menu styling: align similar to legacy tabs */
 .nav-menu {
   display: flex;
-  gap: 6px;
   flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 20px;
+  gap: 6px;
 }
 
 .nav-menu a {
-  padding: 8px 14px;
+  padding: 10px 16px;
+  margin: 4px;
   background: #ddd;
+  border: none;
   border-radius: 4px;
-  text-decoration: none;
-  color: #000;
+  cursor: pointer;
   font-weight: bold;
+  text-decoration: none;
+  color: #111;
 }
 
 .nav-menu a.active {
-  background: #ff9800;
+  background: #333;
+  color: white;
+}
+
+/* User/profile containers for admin and regular users */
+.user-container,
+.profile-container {
+  max-width: 900px;
+  margin: 30px auto;
+  padding: 20px;
+  background: #ffffff;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  border-radius: 8px;
+  text-align: left;
+}
+
+.user-container h2,
+.profile-container h2 {
+  margin-top: 0;
+  color: #f57c00;
+  text-align: center;
+}
+
+.user-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.user-form label {
+  flex: 1 1 200px;
+  font-weight: bold;
+}
+
+.user-form input[type="text"],
+.user-form input[type="password"] {
+  width: 100%;
+  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.user-form button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background: #2196f3;
+  color: #fff;
+  font-size: 14px;
+}
+
+.user-form button:hover {
+  opacity: 0.9;
+}
+
+.user-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  overflow-x: auto;
+  display: block;
+}
+
+.user-table th,
+.user-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #eee;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.user-table thead {
+  background: #f0f0f0;
+}
+
+.user-table tr:nth-child(even) {
+  background: #fafafa;
+}
+
+.user-table button {
+  padding: 6px 10px;
+  font-size: 13px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background: #2196f3;
   color: #fff;
 }
 
-/* Responsive nav for mobile: initially hidden, toggled via 'open' class */
-@media (max-width: 768px) {
-  .nav-menu {
-    display: none;
-    flex-direction: column;
-    width: 100%;
-    margin-top: 10px;
-  }
-  .nav-menu.open {
-    display: flex;
-  }
+/* Generic message styling */
+.message {
+  color: green;
+  text-align: center;
+  margin-top: 10px;
+}
+
+.profile-container form label {
+  display: block;
+  margin-top: 12px;
+  font-weight: bold;
+}
+
+.profile-container form input {
+  width: 100%;
+  padding: 8px;
+  margin-top: 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.profile-container form button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  background-color: #2196f3;
+  color: #fff;
+  cursor: pointer;
+  width: 100%;
 }
