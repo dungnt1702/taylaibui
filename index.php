@@ -24,7 +24,10 @@ if (isset($_SESSION['greet']) && $_SESSION['greet'] === true) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TAY LÁI BỤI SÓC SƠN</title>
+  <!-- Main site stylesheet (must exist in the repository) -->
   <link rel="stylesheet" href="style.css">
+  <!-- Additional styles for user pages -->
+  <link rel="stylesheet" href="user_style.css">
 </head>
 <body>
   <header>
