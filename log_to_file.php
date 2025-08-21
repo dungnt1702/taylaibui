@@ -1,4 +1,11 @@
 <?php
+session_start();
+// Deny access if user is not logged in
+if (!isset($_SESSION['user_id'])) {
+  http_response_code(403);
+  echo "Forbidden";
+  exit;
+}
 $xe = $_POST['xe'] ?? null;
 $bat_dau = $_POST['bat_dau'] ?? null;
 $ket_thuc = $_POST['ket_thuc'] ?? null;

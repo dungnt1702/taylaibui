@@ -30,8 +30,7 @@ $username = $_SESSION['user_name'] ?? '';
       <h1>Thông tin cá nhân</h1>
       <!-- Show user info but link back to this page -->
       <a href="user_profile.php" class="user-info">
-        <span class="user-icon">👤</span>
-        <span class="user-name"><?= htmlspecialchars($username) ?></span>
+        <span class="user-icon">😺</span>
       </a>
     </div>
     <nav id="nav-menu" class="nav-menu">

@@ -42,10 +42,8 @@ $userPageLink = $isAdminUser ? 'user_manager.php' : 'user_profile.php';
       <h1>TAY LÁI BỤI SÓC SƠN</h1>
       <!-- User icon and name; clicking opens either user profile or manager page depending on role -->
       <a href="<?= $userPageLink ?>" class="user-info">
-        <span class="user-icon">👤</span>
-        <span class="user-name">
-          <?= htmlspecialchars($_SESSION['user_name'] ?? '') ?>
-        </span>
+        <!-- Use a playful icon instead of showing the username -->
+        <span class="user-icon">😺</span>
       </a>
     </div>
     <nav id="nav-menu" class="nav-menu">

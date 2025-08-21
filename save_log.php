@@ -1,4 +1,11 @@
 <?php
+session_start();
+// Deny access if user is not logged in
+if (!isset($_SESSION['user_id'])) {
+  http_response_code(403);
+  echo 'Forbidden';
+  exit;
+}
 $date = date('Y-m-d');
 $folder = __DIR__ . '/logs';
 if (!is_dir($folder)) mkdir($folder);

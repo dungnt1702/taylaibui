@@ -8,14 +8,12 @@ session_destroy();
 <head>
   <meta charset="UTF-8">
   <title>Đăng xuất</title>
-  <!-- Automatically redirect to login.php after 2 seconds -->
-  <meta http-equiv="refresh" content="2;url=login.php">
 </head>
 <body>
   <script>
-    // Show a farewell alert to the user
+    // Show a farewell alert and then redirect immediately to the login page
     alert('Hẹn gặp lại');
+    window.location.href = 'login.php';
   </script>
-  <p style="text-align:center; margin-top:40px; font-size:18px;">Hẹn gặp lại</p>
 </body>
 </html>
