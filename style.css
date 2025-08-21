@@ -152,8 +152,8 @@ header .header-top .menu-toggle {
     height: 100%;
     width: 50%; /* menu occupies half of the screen on mobile */
     max-width: 300px;
-    /* Remove padding-top because we insert our own header into the menu */
-    padding-top: 0;
+    /* Leave space at the top equal to the header height so it doesn’t overlap the toggle button */
+    padding-top: 60px;
     overflow-y: auto;
     overflow-x: hidden;
     box-sizing: border-box;
