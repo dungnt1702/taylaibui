@@ -45,4 +45,6 @@ $message = $message ?? '';
         </label>
         <button type="submit" name="action" value="update">Lưu thay đổi</button>
     </form>
+    <!-- Hiển thị nút đăng xuất bên dưới nút cập nhật -->
+    <a href="logout.php" class="logout-btn" style="display:inline-block;margin-top:10px;">Đăng xuất</a>
 </div>

@@ -39,7 +39,6 @@ if (isset($_SESSION['greet']) && $_SESSION['greet'] === true) {
       <span class="user-icon">👤</span>
       <span class="user-name"><?= $userName ?></span>
     </a>
-    <a href="logout.php" class="logout-btn">Đăng xuất</a>
     <!-- End of header -->
   </header>
   <!-- Navigation -->
