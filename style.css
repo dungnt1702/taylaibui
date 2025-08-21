@@ -55,11 +55,6 @@ header .header-top {
   white-space: nowrap;
 }
 
-/* By default, hide the mobile-only header inside the navigation. It will be shown via
-   media query for small screens. */
-.nav-mobile-header {
-  display: none;
-}
 header .header-top h1 {
   margin: 0;
   font-size: 28px;
@@ -190,21 +185,12 @@ header .header-top .menu-toggle {
     color: #333;
   }
 
-  /* Header inside the sliding menu on mobile */
+  /* The sliding menu no longer includes a header logo on mobile */
   .nav-mobile-header {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 60px;
-    width: 100%;
-    background: #e0e0e0;
-    border-bottom: 1px solid rgba(0,0,0,0.1);
+    display: none;
   }
   .nav-mobile-logo {
-    width: 40px;
-    height: auto;
-    /* Show the logo inside the mobile header */
-    display: block;
+    display: none;
   }
 }
 /* Xe hiển thị dạng thẻ */
@@ -711,6 +697,69 @@ body {
 .btn-45 {
   background-color: #2196f3; /* xanh nước biển cho nút 45p */
   color: #fff;
+}
+
+/* ------------------------------------------------------------------ */
+/* Giao diện trang người dùng */
+.user-container {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 20px;
+  background: #ffffff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  text-align: left;
+}
+.user-container h2 {
+  margin-top: 0;
+  color: #333;
+}
+.user-container form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.user-container label {
+  font-weight: bold;
+}
+.user-container input[type="text"],
+.user-container input[type="email"],
+.user-container input[type="password"],
+.user-container input[type="tel"] {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.user-container button {
+  padding: 8px 14px;
+  font-size: 16px;
+  border: none;
+  border-radius: 4px;
+  background-color: #ff9800;
+  color: #fff;
+  cursor: pointer;
+}
+.user-container button:hover {
+  opacity: 0.9;
+}
+/* Logout button in user page */
+.logout-btn {
+  display: inline-block;
+  padding: 8px 14px;
+  font-size: 16px;
+  border: none;
+  border-radius: 4px;
+  background-color: #e53935;
+  color: #fff;
+  text-decoration: none;
+  cursor: pointer;
+  margin-left: 10px;
+}
+.logout-btn:hover {
+  opacity: 0.9;
 }
 .btn-30 {
   background-color: #4caf50; /* xanh lá cây cho nút 30p */

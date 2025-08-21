@@ -36,19 +36,15 @@ $filter = $_GET['filter'] ?? 'all';
       <img src="logo.png" alt="TLB" class="header-logo" />
       <!-- Site name: displayed on one line and scaled via CSS on mobile -->
       <h1>TAY LÁI BỤI SÓC SƠN</h1>
-      <!-- User icon and name; clicking opens user page (if implemented) -->
-      <div class="user-info">
+      <!-- User icon and name; clicking opens user management page -->
+      <a href="user.php" class="user-info">
         <span class="user-icon">👤</span>
         <span class="user-name">
           <?= htmlspecialchars($_SESSION['user_name'] ?? '') ?>
         </span>
-      </div>
+      </a>
     </div>
     <nav id="nav-menu" class="nav-menu">
-      <!-- Mobile header for sliding menu: shows a small logo at the top of the menu on mobile -->
-      <div class="nav-mobile-header">
-        <img src="logo.png" alt="TLB" class="nav-mobile-logo" />
-      </div>
       <a href="?filter=all" id="tab-all" class="<?= $filter == 'all' ? 'active' : '' ?>">Tất cả xe</a>
       <a href="?filter=inactive" id="tab-inactive" class="<?= $filter == 'inactive' ? 'active' : '' ?>">Xe trong xưởng</a>
       <a href="?filter=active" id="tab-active" class="<?= $filter == 'active' ? 'active' : '' ?>">Xe ngoài bãi</a>
