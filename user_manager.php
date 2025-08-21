@@ -2,7 +2,7 @@
 require_once 'db.php';
 session_start();
 // Determine if the user is logged in; we'll show a login modal if not
-$requiresLogin = !(isset($_SESSION['user_id']) || isset($_SESSION['user_name']) || isset($_COOKIE['remember_login']));
+$requiresLogin = !(isset($_SESSION['user_id']) || isset($_COOKIE['remember_login']));
 // If logged in but not admin, redirect to profile page
 if (!$requiresLogin && (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] != 1)) {
   header('Location: user_profile.php');

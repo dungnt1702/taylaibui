@@ -2,10 +2,11 @@
 require_once 'db.php';
 session_start();
 // Determine if the user is logged in; used to decide whether to show the login modal
-$requiresLogin = !(isset($_SESSION['user_id']) || isset($_SESSION['user_name']) || isset($_COOKIE['remember_login']));
+// Determine whether we need to require login. We only trust the presence of a session user_id or a remember_login cookie.
+$requiresLogin = !(isset($_SESSION['user_id']) || isset($_COOKIE['remember_login']));
 
 // If user is authenticated via session (not just cookie) and the remember cookie is not set, create one
-if (!$requiresLogin && (isset($_SESSION['user_id']) || isset($_SESSION['user_name'])) && !isset($_COOKIE['remember_login'])) {
+if (!$requiresLogin && isset($_SESSION['user_id']) && !isset($_COOKIE['remember_login'])) {
   // Remember login on this device for 30 days
   setcookie('remember_login', '1', time() + 30 * 24 * 60 * 60, '/');
 }
