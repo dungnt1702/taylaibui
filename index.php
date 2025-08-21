@@ -1,62 +1,47 @@
 <?php
 require_once 'db.php';
 session_start();
-// Redirect to login page if not authenticated
+// Redirect to login if not authenticated
 if (!isset($_SESSION['user_id'])) {
   header('Location: login.php');
   exit;
 }
-// Show greeting alert after successful login
+// Read filter and admin status
+$filter = $_GET['filter'] ?? 'all';
+$isAdmin = isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1;
+$showUserPage = ($filter === 'user');
+// Greeting script after login (optional)
 $greetingScript = '';
 if (isset($_SESSION['greet']) && $_SESSION['greet'] === true) {
   $username = $_SESSION['user_name'] ?? '';
   $greetingScript = "<script>alert('Chào mừng {$username} vào hệ thống quản lý xe của TAY LÁI BỤI Sóc Sơn');</script>";
   unset($_SESSION['greet']);
 }
-// Determine filter from query
-$filter = $_GET['filter'] ?? 'all';
-
-// Determine admin status
-$isAdmin = isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1;
-
-// Determine if the user info page should be displayed
-// When filter=user, instead of redirecting to a separate file we will embed
-// the appropriate user page (manager or profile) directly into this page.
-$showUserPage = false;
-if ($filter === 'user') {
-  $showUserPage = true;
-}
 ?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <!-- Enable responsive design on mobile devices -->
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Set the document title to the site name only -->
   <title>TAY LÁI BỤI SÓC SƠN</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Header containing menu toggle, site title and user info -->
   <header>
     <div class="header-top">
-      <!-- Left side: menu toggle and logo -->
       <div class="header-left">
-        <button id="menu-toggle" class="menu-toggle">☰</button>
+        <button id="menu-toggle" class="menu-toggle">&#9776;</button>
         <img src="logo.png" alt="TLB" class="header-logo" />
       </div>
-      <!-- Site name: displayed on one line and scaled via CSS on mobile -->
       <h1>TAY LÁI BỤI SÓC SƠN</h1>
       <?php $userName = htmlspecialchars($_SESSION['user_name'] ?? ''); ?>
-      <!-- User info link uses filter=user; redirect handled above -->
       <a href="?filter=user" class="user-info">
         <span class="user-icon">👤</span>
         <span class="user-name"><?= $userName ?></span>
       </a>
     </div>
+    <!-- Navigation -->
     <nav id="nav-menu" class="nav-menu">
-      <!-- No logo in the mobile menu; the list starts right below the header -->
       <a href="?filter=all" id="tab-all" class="<?= $filter == 'all' ? 'active' : '' ?>">Tất cả xe</a>
       <a href="?filter=inactive" id="tab-inactive" class="<?= $filter == 'inactive' ? 'active' : '' ?>">Xe trong xưởng</a>
       <a href="?filter=active" id="tab-active" class="<?= $filter == 'active' ? 'active' : '' ?>">Xe ngoài bãi</a>
@@ -68,9 +53,8 @@ if ($filter === 'user') {
       <a href="?filter=group" id="tab-group" class="<?= $filter == 'group' ? 'active' : '' ?>">Khách đoàn</a>
     </nav>
   </header>
-  <!-- Dynamic page title depending on tab -->
+
   <?php if ($showUserPage): ?>
-    <?php // When showing user page, embed the relevant user page content instead of the vehicle list ?>
     <?php define('EMBEDDED', true); ?>
     <?php
       if ($isAdmin) {
@@ -80,35 +64,15 @@ if ($filter === 'user') {
       }
     ?>
   <?php else: ?>
-    <!-- Dynamic page title depending on tab -->
+    <!-- Vehicle page content here.  This can call your existing script.js to render vehicles -->
     <h2 id="page-title"></h2>
-    <div id="vehicle-list">
-      <!-- Vehicle cards will be rendered dynamically by script.js -->
-    </div>
-    <!-- Controls for group (khách đoàn) actions -->
+    <div id="vehicle-list"></div>
     <div id="group-controls" class="group-controls">
-      <!-- Dòng chọn thời gian -->
-      <div class="group-control">
-        <select id="group-timer">
-          <option value="30" selected>30 phút</option>
-          <option value="45">45 phút</option>
-        </select>
-        <button onclick="startTimerGroup(parseInt(document.getElementById('group-timer').value, 10))">Chọn thời gian</button>
-      </div>
-      <!-- Dòng chọn cung đường -->
-      <div class="group-control">
-        <select id="group-route">
-          <option value="0">--</option>
-<?php for ($i=1; $i<=10; $i++): ?>
-        <option value="<?= $i ?>"><?= $i ?></option>
-<?php endfor; ?>
-        </select>
-        <button onclick="setRouteGroup(parseInt(document.getElementById('group-route').value, 10))">Chọn cung đường</button>
-      </div>
+      <!-- controls for group operations (optional) -->
     </div>
   <?php endif; ?>
 
-  <!-- Modal để chỉnh sửa tình trạng xe (remains on all pages for consistency) -->
+  <!-- Modal for editing vehicle status (same as before) -->
   <div id="notes-modal" class="modal">
     <div class="modal-content">
       <h3 id="notes-title">TÌNH TRẠNG XE</h3>
@@ -120,9 +84,6 @@ if ($filter === 'user') {
     </div>
   </div>
   <script src="script.js"></script>
-  <?php
-    // Output greeting script if available
-    if ($greetingScript) echo $greetingScript;
-  ?>
+  <?php if ($greetingScript) echo $greetingScript; ?>
 </body>
 </html>
