@@ -1,14 +1,11 @@
 <?php
 require_once 'db.php';
 session_start();
-// Redirect to login page if not authenticated
-if (!isset($_SESSION['user_id'])) {
-  header('Location: login.php');
-  exit;
-}
+// Determine if the user is logged in; used to decide whether to show the login modal
+$requiresLogin = !isset($_SESSION['user_id']);
 // Show greeting alert after successful login
 $greetingScript = '';
-if (isset($_SESSION['greet']) && $_SESSION['greet'] === true) {
+if (!$requiresLogin && isset($_SESSION['greet']) && $_SESSION['greet'] === true) {
   $username = $_SESSION['user_name'] ?? '';
   $greetingScript = "<script>alert('Chào mừng {$username} vào hệ thống quản lý xe của TAY LÁI BỤI Sóc Sơn');</script>";
   unset($_SESSION['greet']);
@@ -40,10 +37,10 @@ $userPageLink = $isAdminUser ? 'user_manager.php' : 'user_profile.php';
       <img src="logo.png" alt="TLB" class="header-logo" />
       <!-- Site name: displayed on one line and scaled via CSS on mobile -->
       <h1>TAY LÁI BỤI SÓC SƠN</h1>
-      <!-- User icon and name; clicking opens either user profile or manager page depending on role -->
+      <!-- User icon; clicking opens either user profile or manager page depending on role -->
       <a href="<?= $userPageLink ?>" class="user-info">
-        <!-- Use a playful icon instead of showing the username -->
-        <span class="user-icon">😺</span>
+        <!-- Use a playful icon of a boy and girl smiling instead of showing the username -->
+        <span class="user-icon">👦👧</span>
       </a>
     </div>
     <nav id="nav-menu" class="nav-menu">
@@ -96,10 +93,22 @@ $userPageLink = $isAdminUser ? 'user_manager.php' : 'user_profile.php';
       </div>
     </div>
   </div>
-  <script src="script.js"></script>
+  <?php if (!$requiresLogin): ?>
+    <script src="script.js"></script>
+  <?php endif; ?>
   <?php
-    // Output greeting script if available
+    // Output greeting script if available and the user is logged in
     if ($greetingScript) echo $greetingScript;
   ?>
+  <?php if ($requiresLogin): ?>
+    <!-- Login modal shown when user is not authenticated -->
+    <div class="login-modal" id="login-modal" style="display:flex;">
+      <div class="login-modal-content">
+        <h2>Yêu cầu đăng nhập</h2>
+        <p>Bạn cần đăng nhập trước khi sử dụng hệ thống.</p>
+        <a href="login.php" class="login-button">Đăng nhập</a>
+      </div>
+    </div>
+  <?php endif; ?>
 </body>
 </html>
