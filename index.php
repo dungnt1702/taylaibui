@@ -15,6 +15,10 @@ if (isset($_SESSION['greet']) && $_SESSION['greet'] === true) {
 }
 // Determine filter from query
 $filter = $_GET['filter'] ?? 'all';
+// Determine if the current user is an admin. This will be used to decide which
+// user page link to output in the header.
+$isAdminUser = isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1;
+$userPageLink = $isAdminUser ? 'user_manager.php' : 'user_profile.php';
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -36,8 +40,8 @@ $filter = $_GET['filter'] ?? 'all';
       <img src="logo.png" alt="TLB" class="header-logo" />
       <!-- Site name: displayed on one line and scaled via CSS on mobile -->
       <h1>TAY LÁI BỤI SÓC SƠN</h1>
-      <!-- User icon and name; clicking opens user management page -->
-      <a href="user.php" class="user-info">
+      <!-- User icon and name; clicking opens either user profile or manager page depending on role -->
+      <a href="<?= $userPageLink ?>" class="user-info">
         <span class="user-icon">👤</span>
         <span class="user-name">
           <?= htmlspecialchars($_SESSION['user_name'] ?? '') ?>

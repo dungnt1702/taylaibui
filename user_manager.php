@@ -1,67 +1,74 @@
 <?php
-// Example admin-only user management page
 require_once 'db.php';
 session_start();
-// Only allow access for logged-in users
+// Require authentication
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
-    exit;
+  header('Location: login.php');
+  exit;
 }
-// Determine embed mode
-$embedded = defined('EMBEDDED') && EMBEDDED;
-// Display heading early when embedded
-if ($embedded) {
-    echo '<h2>Quản lý người dùng</h2>';
+// If the user is not an admin, redirect to their profile page
+if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] != 1) {
+  header('Location: user_profile.php');
+  exit;
 }
-// -- xử lý CRUD ở đây --
-$message = $message ?? '';
+
+$username = $_SESSION['user_name'] ?? '';
 ?>
-<?php if (!$embedded): ?>
-<a href="index.php">← Trang chủ</a>
-<h2>Quản lý người dùng</h2>
-<?php endif; ?>
-<div class="user-container">
-    <?php if ($message): ?>
-        <div class="message"><?= htmlspecialchars($message) ?></div>
-    <?php endif; ?>
-    <!-- Form thêm/cập nhật người dùng (giản lược) -->
-    <form method="post" class="user-form">
-        <label>Số điện thoại: <input type="text" name="phone" required></label>
-        <label>Tên: <input type="text" name="name" required></label>
-        <label>Mật khẩu: <input type="password" name="password"></label>
-        <label><input type="checkbox" name="is_admin"> Quản trị viên</label>
-        <label><input type="checkbox" name="is_active" checked> Kích hoạt</label>
-        <button type="submit" name="action" value="add">Thêm</button>
-    </form>
-    <!-- Danh sách người dùng -->
-    <h3>Danh sách người dùng</h3>
-    <table class="user-table">
-        <thead>
-            <tr><th>ID</th><th>Số điện thoại</th><th>Tên</th><th>Quản trị</th><th>Kích hoạt</th><th>Mật khẩu mới</th><th>Hành động</th></tr>
-        </thead>
-        <tbody>
-        <?php foreach ($users ?? [] as $u): ?>
-            <tr>
-                <td><?= $u['id'] ?></td>
-                <td><?= htmlspecialchars($u['phone']) ?></td>
-                <td><?= htmlspecialchars($u['name']) ?></td>
-                <td><?= $u['is_admin'] ? 'Có' : 'Không' ?></td>
-                <td><?= $u['is_active'] ? 'Có' : 'Không' ?></td>
-                <td>
-                    <form method="post" style="display:inline-block;">
-                        <input type="hidden" name="uid" value="<?= $u['id'] ?>">
-                        <input type="password" name="password" placeholder="Mật khẩu mới">
-                        <button type="submit" name="action" value="update">Lưu</button>
-                    </form>
-                </td>
-                <td>
-                    <form method="post" style="display:inline-block;">
-                        <input type="hidden" name="uid" value="<?= $u['id'] ?>">
-                        <button type="submit" name="action" value="delete">Xóa</button>
-                    </form>
-                </td>
-            </tr>
-        <?php endforeach; ?>
-        </tbody>
-    </table>
-</div>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản lý người dùng</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="header-top">
+      <button id="menu-toggle" class="menu-toggle">☰</button>
+      <img src="logo.png" alt="TLB" class="header-logo">
+      <h1>Quản lý người dùng</h1>
+      <!-- Show user info linking to this manager page -->
+      <a href="user_manager.php" class="user-info">
+        <span class="user-icon">👤</span>
+        <span class="user-name"><?= htmlspecialchars($username) ?></span>
+      </a>
+    </div>
+    <nav id="nav-menu" class="nav-menu">
+      <a href="index.php?filter=all">Tất cả xe</a>
+      <a href="index.php?filter=inactive">Xe trong xưởng</a>
+      <a href="index.php?filter=active">Xe ngoài bãi</a>
+      <a href="index.php?filter=running">Xe đang chạy</a>
+      <a href="index.php?filter=waiting">Xe đang chờ</a>
+      <a href="index.php?filter=expired">Xe hết giờ</a>
+      <a href="index.php?filter=paused">Xe tạm dừng</a>
+      <a href="index.php?filter=route">Xe cung đường</a>
+      <a href="index.php?filter=group">Khách đoàn</a>
+    </nav>
+  </header>
+  <div class="user-container">
+    <h2>Quản lý người dùng</h2>
+    <p>Chức năng quản lý người dùng đang được phát triển.</p>
+    <a href="logout.php" class="logout-btn">Đăng xuất</a>
+  </div>
+  <!-- Minimal script to toggle navigation -->
+  <script>
+    function toggleNav() {
+      const nav = document.getElementById('nav-menu');
+      if (nav) nav.classList.toggle('open');
+    }
+    const menuToggle = document.getElementById('menu-toggle');
+    if (menuToggle) menuToggle.addEventListener('click', toggleNav);
+    document.addEventListener('click', function(e) {
+      const nav = document.getElementById('nav-menu');
+      const toggle = document.getElementById('menu-toggle');
+      if (!nav || !toggle) return;
+      if (nav.classList.contains('open')) {
+        if (!nav.contains(e.target) && e.target !== toggle) {
+          nav.classList.remove('open');
+        }
+      }
+    });
+  </script>
+</body>
+</html>
