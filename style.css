@@ -1,65 +1,37 @@
-/* style.css */
+/* Basic reset and body styling */
 body {
   font-family: Arial, sans-serif;
+  margin: 20px;
   background: #f5f5f5;
-  margin: 40px;
-  text-align: center;
 }
-
-/* Keep the header (title and menu) fixed at the top when scrolling */
 header {
   position: sticky;
   top: 0;
   z-index: 999;
   background: #f5f5f5;
-  /* Top and bottom padding stay the same; add horizontal padding to keep content away from edges */
   padding: 10px 12px;
-}
-.logo {
-  height: 80px;
-  margin-bottom: 10px;
-}
-/* Layout for header top: aligns menu icon and title horizontally */
-header .header-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
 }
-/* Logo in header */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 .header-logo {
   width: 42px;
   height: 42px;
   object-fit: contain;
 }
-header .header-top h1 {
+h1 {
   margin: 0;
   font-size: 28px;
   font-weight: bold;
+  color: #ff9800;
   flex: 1;
   text-align: center;
-  color: #ff9800; /* màu cam thương hiệu cho tiêu đề */
-  /* No surrounding border box; stroke is defined separately below */
-  padding: 4px 8px;
-}
-
-/* Adjust title font size on small screens */
-@media (max-width: 480px) {
-  header .header-top h1 {
-    font-size: 18px;
-  }
-  .header-logo {
-    width: 32px;
-    height: 32px;
-  }
-}
-
-/* Extra classes for header layout and user info */
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: none;
 }
 .user-info {
   display: flex;
@@ -68,776 +40,145 @@ header .header-top h1 {
   text-decoration: none;
   font-weight: bold;
   color: #000;
-  flex: none;
-}
-.user-info:hover {
-  opacity: 0.8;
+  margin-right: 10px;
 }
 .user-icon {
   font-size: 24px;
-  line-height: 1;
   color: #ff9800;
 }
 .user-name {
   font-size: 16px;
 }
-@media (max-width: 480px) {
-  .user-name {
-    font-size: 14px;
-  }
-  .user-icon {
-    font-size: 20px;
-  }
+.logout-btn {
+  text-decoration: none;
+  background: #e53935;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-weight: bold;
 }
-/* Navigation styles */
+.logout-btn:hover {
+  opacity: 0.85;
+}
 .nav-menu {
   display: flex;
-  justify-content: top;
-  gap: 4px;
-  width: 100%;
+  gap: 6px;
+  flex-wrap: wrap;
 }
-/* Style links in the nav */
 .nav-menu a {
-  padding: 10px 16px;
-  margin: 4px;
+  padding: 8px 14px;
   background: #ddd;
   border-radius: 4px;
   text-decoration: none;
   color: #000;
   font-weight: bold;
-  display: inline-block;
 }
-/* Active menu item style */
 .nav-menu a.active {
   background: #ff9800;
   color: #fff;
 }
-
-/* Mobile logo hidden on desktop */
-.nav-mobile-logo {
-  display: none;
-}
-
-/* Menu toggle button - hidden on desktop */
-/* General menu toggle style */
-.menu-toggle {
-  background: none;
-  border: none;
-  font-size: 28px;
-  cursor: pointer;
-  padding: 6px 10px;
-  z-index: 1001;
-}
-/* Hide menu toggle on desktop */
-@media (min-width: 769px) {
-  .menu-toggle {
-    display: none;
-  }
-}
-@media (max-width: 768px) {
-  /* In mobile view, place toggle next to title */
-  .menu-toggle {
-    display: inline-block;
-    position: static;
-    margin-right: 8px;
-  }
-}
-
-/* Ensure the menu toggle does not grow and the title occupies remaining space */
-header .header-top .menu-toggle {
-  flex: none;
-}
-
-/* Responsive navigation for mobile */
-@media (max-width: 768px) {
-  .nav-menu {
-    flex-direction: column;
-    align-items: flex-start;
-    /* Use a light background on mobile instead of dark */
-    background: #e0e0e0;
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 50%; /* menu occupies half of the screen on mobile */
-    max-width: 300px;
-    padding-top: 60px; /* less top padding so menu sits higher */
-    /* Prevent menu items from overflowing outside the nav */
-    overflow-y: auto;
-    overflow-x: hidden;
-    box-sizing: border-box;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-    z-index: 1000;
-  }
-  .nav-menu.open {
-    transform: translateX(0);
-  }
-  .nav-menu a {
-    width: 100%;
-    text-align: left;
-    /* dark text on light background */
-    color: #333;
-    background: none;
-    border: none;
-    padding: 12px 20px;
-    margin: 0;
-    border-bottom: 1px solid rgba(0,0,0,0.1);
-    box-sizing: border-box;
-  }
-  .nav-menu a.active {
-    background: #ffcc80;
-    color: #000;
-  }
-  .menu-toggle {
-    display: block;
-    color: #333;
-  }
-
-  /* Show logo at the top of mobile menu. Adjust spacing and background to match new menu color */
-  .nav-mobile-logo {
-    display: block;
-    width: 100%;
-    text-align: center;
-    padding: 10px 0 10px;
-    background: #e0e0e0;
-    border-bottom: 1px solid rgba(0,0,0,0.1);
-  }
-  .nav-mobile-logo img {
-    width: 50px;
-    height: auto;
-  }
-}
-/* Xe hiển thị dạng thẻ */
-.vehicle {
-  display: inline-block;
-  background: #fffaf2; /* nền sáng theo màu thương hiệu */
+/* User and profile containers */
+.user-container,
+.profile-container {
+  max-width: 900px;
+  margin: 30px auto;
   padding: 20px;
-  margin: 15px;
-  border-radius: 12px;
-  width: 280px;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
-  transition: all 0.3s ease-in-out;
-  text-align: center;
-  position: relative;
-}
-/* Xe đang chạy: màu cam nhạt */
-.vehicle.running {
-  background-color: #ffe0b2;
-}
-/* Cảnh báo khi còn ít phút */
-.vehicle.warning {
-  background-color: #fff3e0;
-}
-/* Hết giờ: màu đỏ nhạt */
-.vehicle.expired {
-  background-color: #ffebee;
-}
-
-/* Xe đang ở cung đường: xanh nhạt để phân biệt */
-.vehicle.route {
-  background-color: #e0f7fa;
-}
-.vehicle h3 {
-  margin-top: 0;
-  font-size: 24px;
-  color: #111;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  border-bottom: 1px solid #ddd;
-  padding-bottom: 6px;
-}
-/* Default timer display size */
-.vehicle .timer {
-  font-size: 48px;
-  margin: 20px 0;
-  font-weight: bold;
-  color: #111;
-  transition: color 0.3s ease-in-out;
-}
-.vehicle.warning .timer {
-  animation: blink 1s step-start 0s infinite;
-  color: #b36b00;
-}
-.vehicle.expired .timer {
-  color: #a94442;
-}
-@keyframes blink {
-  50% {
-    opacity: 0.3;
-  }
-}
-.vehicle button {
-  margin: 6px;
-  padding: 10px 14px;
-  font-size: 16px;
-  cursor: pointer;
-  border: none;
-  border-radius: 6px;
-  background: #eee;
-  transition: background 0.3s;
-}
-.vehicle button:hover {
-  background: #ccc;
-}
-.vehicle .highlight {
-  /* highlight class is no longer used; color definitions moved to specific buttons */
-  background-color: #4caf50;
-  color: #fff;
-}
-
-/* Specific button colors for different actions */
-.btn-45 {
-  background-color: #2196f3; /* xanh nước biển */
-  color: #fff;
-}
-.btn-30 {
-  background-color: #4caf50; /* xanh lá */
-  color: #fff;
-}
-.btn-add {
-  background-color: #4caf50; /* xanh lá thêm thời gian */
-  color: #fff;
-}
-.btn-reset {
-  background-color: #9c27b0; /* tím */
-  color: #fff;
-}
-
-.btn-add:hover,
-.btn-45:hover,
-.btn-30:hover,
-.btn-reset:hover {
-  opacity: 0.9;
-}
-.vehicle.paused {
-  border-left: 6px solid #6c757d;
-  background-color: #f0f0f0;
-}
-.vehicle.inactive {
-  opacity: 0.5;
-}
-.vehicle.inactive button {
-  pointer-events: none;
-}
-.vehicle.inactive .toggle-btn {
-  pointer-events: auto;
-  opacity: 1;
-  background-color: #4caf50;
-  color: white;
-}
-.vehicle .toggle-btn {
-  background-color: #607d8b; /* xám đậm */
-  color: #fff;
-}
-.vehicle.inactive .toggle-btn {
-  background-color: #888;
-}
-.vehicle .btn-hidden {
-  display: none;
-}
-.vehicle .controls {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.vehicle .controls-row {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-}
-
-/* When vehicle details are collapsed, reduce bottom padding */
-.vehicle.collapsed {
-  padding-bottom: 10px;
-}
-
-/* Reduce timer size for vehicles on a route so text fits neatly */
-.vehicle.route .timer {
-  font-size: 28px;
-  line-height: 1.2;
-}
-
-/* Style the start time in route mode to be smaller */
-.vehicle.route .timer .start-time {
-  font-size: 14px;
-  font-weight: normal;
-}
-
-/* Giao diện cho bộ chọn cung đường */
-.route-selector label {
-  font-weight: bold;
-  margin-right: 6px;
-  display: flex;
-  align-items: center;
-}
-.route-selector select {
-  padding: 6px;
-  border-radius: 4px;
-}
-
-/* Checkbox for bulk selection */
-.vehicle .select-checkbox {
-  position: absolute;
-  top: 6px;
-  left: 6px;
-  transform: scale(1.3);
-}
-
-/* Highlight selected vehicles in bulk tab */
-.vehicle.selected {
-  box-shadow: 0 0 0 4px #007bff;
-}
-
-/* Add padding to vehicle list container to avoid content touching the screen edges */
-#vehicle-list {
-  padding: 0 10px;
-}
-
-/* Controls for group (Khách đoàn) actions */
-.group-controls {
-  margin: 20px auto;
-  display: none; /* toggled via script when group tab is active */
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-}
-.group-control {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-@media (min-width: 769px) {
-  .group-controls {
-    flex-direction: row;
-    justify-content: center;
-  }
-}
-.group-controls select {
-  padding: 8px 12px;
-  font-size: 16px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-}
-.group-controls button {
-  padding: 8px 14px;
-  font-size: 16px;
-  border: none;
-  border-radius: 4px;
-  background-color: #ff9800;
-  color: #fff;
-  cursor: pointer;
-}
-.group-controls button:hover {
-  opacity: 0.9;
-}
-
-/* Hiển thị danh sách trong tab Khách đoàn dạng hàng dọc */
-.vehicle.group-mode {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  width: 90%;
-  max-width: 600px;
-  margin: 8px auto;
-  padding: 12px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-.vehicle.group-mode .select-checkbox {
-  position: static;
-  margin-right: 12px;
-  transform: scale(1.4);
-}
-.vehicle.group-mode h3 {
-  margin: 0;
-  font-size: 20px;
-  flex: 1;
-  text-align: left;
-}
-.vehicle.group-mode .timer {
-  font-size: 24px;
-  margin: 0;
-}
-
-/* In group mode show status text */
-.vehicle.group-mode .status {
-  font-size: 16px;
-  color: #555;
-  margin: 0;
-  white-space: pre-wrap;
-}
-
-/* Modal for editing repair notes */
-.modal {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-}
-.modal-content {
-  background: #fff;
-  padding: 20px;
+  background: #ffffff;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  width: 90%;
-  max-width: 400px;
   text-align: left;
 }
-.modal-content textarea {
+.user-container h2,
+.profile-container h2 {
+  margin-top: 0;
+  color: #f57c00;
+  text-align: center;
+}
+.user-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-top: 10px;
+}
+.user-form label {
+  flex: 1 1 200px;
+  font-weight: bold;
+}
+.user-form input[type="text"],
+.user-form input[type="password"] {
+  width: 100%;
+  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+.user-form button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background: #2196f3;
+  color: #fff;
+  font-size: 14px;
+}
+.user-form button:hover {
+  opacity: 0.9;
+}
+.user-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  overflow-x: auto;
+  display: block;
+}
+.user-table th,
+.user-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #eee;
+  text-align: center;
+  white-space: nowrap;
+}
+.user-table thead {
+  background: #f0f0f0;
+}
+.user-table tr:nth-child(even) {
+  background: #fafafa;
+}
+.user-table button {
+  padding: 6px 10px;
+  font-size: 13px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background: #2196f3;
+  color: #fff;
+}
+.message {
+  color: green;
+  text-align: center;
+  margin-top: 10px;
+}
+.profile-container form label {
+  display: block;
+  margin-top: 12px;
+  font-weight: bold;
+}
+.profile-container form input {
   width: 100%;
   padding: 8px;
-  margin-top: 10px;
-  resize: vertical;
+  margin-top: 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
 }
-.modal-actions {
-  margin-top: 10px;
-  text-align: right;
-}
-.modal-actions button {
-  margin-left: 8px;
-  padding: 6px 12px;
-  font-size: 14px;
+.profile-container form button {
+  margin-top: 20px;
+  padding: 10px 20px;
   border: none;
   border-radius: 4px;
-  cursor: pointer;
-}
-
-/* Style the modal action buttons: first (Lưu) blue, second (Hủy) grey */
-.modal-actions button:first-child {
   background-color: #2196f3;
   color: #fff;
-}
-.modal-actions button:last-child {
-  background-color: #9e9e9e;
-  color: #fff;
-}
-.edit-notes-btn {
-  background: none;
-  border: none;
-  font-size: 18px;
   cursor: pointer;
-}
-
-/* Button to bring car out of workshop */
-.workshop-out-btn {
-  background-color: #ff9800;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  padding: 4px 8px;
-  margin-left: 6px;
-  font-size: 14px;
-  cursor: pointer;
-}
-.workshop-out-btn:hover {
-  opacity: 0.9;
-}
-
-/* Styles for route groups list */
-.route-group {
-  margin: 20px auto;
-  width: 90%;
-  max-width: 600px;
-  background: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-}
-.route-group-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #333;
-  color: #fff;
-  padding: 10px 16px;
-}
-.route-group-header h2 {
-  margin: 0;
-  font-size: 20px;
-}
-.route-group-header button {
-  background: #e74c3c;
-  color: #fff;
-  border: none;
-  padding: 6px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.route-group-header button:hover {
-  background: #c0392b;
-}
-
-/* Override the label of the reset button in route groups to "Xe về bãi".
-   We hide the original text and inject our own via a pseudo-element to avoid
-   editing the JavaScript template literal directly. */
-.route-group-header button {
-  position: relative;
-  color: transparent; /* hide default text */
-}
-.route-group-header button::after {
-  content: 'Xe về bãi';
-  color: #fff;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-}
-.route-table {
   width: 100%;
-  border-collapse: collapse;
-}
-.route-table th,
-.route-table td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: center;
-  font-size: 16px;
-}
-.route-table th {
-  background: #f0f0f0;
-}
-
-/* Styles for repair table (inactive vehicles) */
-.repair-table {
-  width: 100%;
-  border-collapse: collapse;
-  max-width: 800px;
-  margin: 20px auto;
-  background: #fff;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-  overflow: hidden;
-}
-.repair-table th,
-.repair-table td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  font-size: 16px;
-  text-align: left;
-}
-
-/* ------------------------------------------------------------------ */
-/* Ghi chú: Các định nghĩa sau đây ghi đè màu sắc và phong cách
-   để đáp ứng yêu cầu tùy chỉnh thương hiệu và giao diện mới */
-
-/* Màu cam cho tiêu đề chính với viền cam đậm */
-header .header-top h1 {
-  color: #f57c00;
-  /* Outline the text with a darker orange stroke instead of a box */
-  -webkit-text-stroke: 1px #e65100;
-  text-stroke: 1px #e65100;
-}
-
-/* Nút thời lượng và hành động */
-.btn-45 {
-  background-color: #2196f3 !important;
-  color: #fff !important;
-}
-.btn-30 {
-  background-color: #4caf50 !important;
-  color: #fff !important;
-}
-.btn-add {
-  background-color: #4caf50 !important;
-  color: #fff !important;
-}
-.btn-reset {
-  background-color: #9c27b0 !important;
-  color: #fff !important;
-}
-/* Nút Đưa vào xưởng (toggle button) */
-.vehicle .toggle-btn {
-  background-color: #607d8b;
-  color: #fff;
-}
-
-/* Nút Xuất xưởng trong bảng sửa chữa */
-.workshop-out-btn {
-  background-color: #4caf50;
-  color: #fff;
-  padding: 6px 10px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-/* Thông báo khi không có xe */
-.no-vehicles {
-  color: #888;
-  font-style: italic;
-  margin-top: 20px;
-}
-
-/* Logo trong menu mobile */
-/* Logo hiển thị ở đầu menu dọc trên di động */
-.nav-mobile-header {
-  display: none;
-}
-.nav-mobile-logo {
-  width: 50px;
-  height: auto;
-}
-@media (max-width: 768px) {
-  .nav-mobile-header {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 60px;
-    width: 100%;
-    margin-bottom: 0;
-    background-color: #e0e0e0;
-    border-bottom: 1px solid rgba(0,0,0,0.1);
-    color: #333;
-  }
-}
-
-/* Đổi màu nút trong route group header thành tím */
-.route-group-header button {
-  background: #9c27b0;
-  color: #fff;
-}
-.route-group-header button:hover {
-  background: #7b1fa2;
-}
-
-/* Toàn bộ body không margin để header và menu tràn hết chiều ngang */
-body {
-  margin: 0;
-  padding: 0;
-  background: #f5f5f5;
-}
-
-/* Menu ngang trên mobile chiếm toàn bộ chiều rộng */
-@media (min-width: 769px) {
-  .nav-menu {
-    width: 100%;
-  }
-}
-/* ------------------------------------------------------------------ */
-/* Các override màu sắc nút theo yêu cầu người dùng.
-   Đặt ở cuối file để ghi đè định nghĩa trước đó nhờ tính chất cascade.
-*/
-.btn-45 {
-  background-color: #2196f3; /* xanh nước biển cho nút 45p */
-  color: #fff;
-}
-.btn-30 {
-  background-color: #4caf50; /* xanh lá cây cho nút 30p */
-  color: #fff;
-}
-.btn-add {
-  background-color: #4caf50; /* xanh lá cây cho nút Thêm 10p */
-  color: #fff;
-}
-.btn-reset {
-  background-color: #9c27b0; /* tím cho nút Về bãi */
-  color: #fff;
-}
-
-/* Nút Tiếp tục trong trạng thái tạm hoãn */
-.btn-resume {
-  background-color: #4caf50 !important;
-  color: #fff !important;
-}
-
-/* When a vehicle card is collapsed (hidden details), reduce header spacing */
-.vehicle.collapsed h3 {
-  border-bottom: none;
-  margin-bottom: 0;
-  padding-bottom: 0;
-}
-.repair-table td:nth-child(2) {
-  white-space: pre-wrap; /* Preserve newlines for repair notes */
-}
-.repair-table th {
-  background: #f0f0f0;
-  text-align: left;
-}
-.repair-table td:last-child {
-  text-align: center;
-}
-
-/* --------------------------------------------------------- */
-/* Logo hiển thị trên đầu menu slide‑out (chỉ trên di động) */
-.nav-mobile-logo {
-  display: none;
-  width: 100%;
-  padding: 20px 0 10px;
-  text-align: center;
-  background: #333;
-}
-.nav-mobile-logo img {
-  width: 60px;
-  height: auto;
-}
-@media (max-width: 768px) {
-  .nav-mobile-logo {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-}
-
-/* Nút Xuất xưởng trong bảng sửa chữa */
-.workshop-out-btn {
-  margin-left: 8px;
-  padding: 6px 10px;
-  font-size: 14px;
-  background-color: #607d8b;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.workshop-out-btn:hover {
-  opacity: 0.9;
-}
-
-/* Menu trượt trên di động không đẩy nội dung sang phải; nội dung vẫn hiển thị bình thường */
-/* Arrow indicators for collapsing/expanding vehicle details */
-.arrow {
-  display: inline-block;
-  margin-right: 6px;
-  cursor: pointer;
-}
-.arrow.collapsed::before {
-  content: '\25BC'; /* downwards arrow when collapsed */
-  font-size: 16px;
-}
-.arrow.expanded::before {
-  content: '\25B2'; /* upwards arrow when expanded */
-  font-size: 16px;
-}
-
-/* Two-column layout for vehicles on small screens */
-@media (max-width: 768px) {
-  /* Display vehicles in a flexible row wrapping to allow two per line */
-  #vehicle-list {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  .vehicle {
-    /* On small screens, use a single column taking 80% of the width with auto margins */
-    width: 80%;
-    margin: 10px auto;
-  }
-  /* Ensure group mode list remains full width */
-  .vehicle.group-mode {
-    width: 90% !important;
-    margin: 8px auto !important;
-  }
 }

@@ -8,7 +8,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 // Read filter and admin status
 $filter = $_GET['filter'] ?? 'all';
-$isAdmin = isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1;
+$isAdmin = !empty($_SESSION['is_admin']) && intval($_SESSION['is_admin']) === 1;
 $showUserPage = ($filter === 'user');
 // Greeting script after login (optional)
 $greetingScript = '';
@@ -39,6 +39,8 @@ if (isset($_SESSION['greet']) && $_SESSION['greet'] === true) {
         <span class="user-icon">👤</span>
         <span class="user-name"><?= $userName ?></span>
       </a>
+  <!-- Logout button -->
+  <a href="logout.php" class="logout-btn">Đăng xuất</a>
     </div>
     <!-- Navigation -->
     <nav id="nav-menu" class="nav-menu">
