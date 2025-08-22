@@ -2,13 +2,41 @@
 require_once 'db.php';
 session_start();
 // Determine if the user is logged in; used to decide whether to show the login modal
-// Determine whether we need to require login. We only trust the presence of a session user_id or a remember_login cookie.
-$requiresLogin = !(isset($_SESSION['user_id']) || isset($_COOKIE['remember_login']));
+// We need to check both session and cookie, and validate the session is still active
+$requiresLogin = true; // Default to requiring login
 
-// If user is authenticated via session (not just cookie) and the remember cookie is not set, create one
-if (!$requiresLogin && isset($_SESSION['user_id']) && !isset($_COOKIE['remember_login'])) {
-  // Remember login on this device for 30 days
-  setcookie('remember_login', '1', time() + 30 * 24 * 60 * 60, '/');
+// Check if user has valid session
+if (isset($_SESSION['user_id']) && isset($_SESSION['user_name'])) {
+    $requiresLogin = false;
+}
+
+// Check if user has valid remember_login cookie and session expiration
+if (isset($_COOKIE['remember_login']) && $_COOKIE['remember_login'] === '1') {
+    if (isset($_COOKIE['session_expires'])) {
+        $sessionExpires = (int)$_COOKIE['session_expires'];
+        
+        // Kiểm tra xem session có hết hạn chưa
+        if (time() > $sessionExpires) {
+            // Session đã hết hạn, xóa tất cả cookie và session
+            session_destroy();
+            setcookie('remember_login', '', time() - 3600, '/');
+            setcookie('session_expires', '', time() - 3600, '/');
+            $requiresLogin = true;
+        } else if (isset($_SESSION['user_id'])) {
+            // Session còn hạn và user đã đăng nhập
+            $requiresLogin = false;
+        } else {
+            // Cookie còn hạn nhưng không có session, cần đăng nhập lại
+            $requiresLogin = true;
+        }
+    } else {
+        // Không có session_expires, xử lý như cũ
+        if (!isset($_SESSION['user_id'])) {
+            $requiresLogin = true;
+        } else {
+            $requiresLogin = false;
+        }
+    }
 }
 // Show greeting alert after successful login
 $greetingScript = '';
@@ -327,6 +355,10 @@ $isAdminUser = isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1;
             </div>
           </div>
           <div class="form-group" id="submit-group" style="display:none;">
+            <div class="remember-login">
+              <input type="checkbox" id="remember-login" name="remember_login" value="1">
+              <label for="remember-login">Ghi nhớ đăng nhập trong 1 tuần</label>
+            </div>
             <button type="submit" class="login-btn">Đăng nhập</button>
           </div>
           <div id="login-error" class="error-message" style="display:none;"></div>
@@ -334,5 +366,18 @@ $isAdminUser = isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1;
       </div>
     </div>
   <?php endif; ?>
+  
+  <!-- Modal thông báo -->
+  <div id="message-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="message-content">
+        <div class="message-icon">✅</div>
+        <p id="message-text"></p>
+      </div>
+      <div class="modal-actions">
+        <button onclick="closeMessageModal()" class="btn-primary">Đóng</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

@@ -48,13 +48,22 @@ if ($stmt->fetch()) {
         // Đăng nhập thành công
         $_SESSION['user_id'] = $uid;
         $_SESSION['user_name'] = $uname;
+        $_SESSION['user_phone'] = $phone;
         $_SESSION['is_admin'] = $isAdmin;
         $_SESSION['greet'] = true;
         
-        // Persistent login cookie (7 days)
-        setcookie('user_id', $uid, time() + 7*24*60*60, '/');
-        setcookie('user_name', $uname, time() + 7*24*60*60, '/');
-        setcookie('is_admin', $isAdmin, time() + 7*24*60*60, '/');
+        // Xử lý checkbox "Ghi nhớ đăng nhập"
+        $rememberLogin = isset($_POST['remember_login']) && $_POST['remember_login'] === '1';
+        
+        if ($rememberLogin) {
+            // Nếu check vào checkbox: lưu phiên đăng nhập trong 1 tuần
+            setcookie('remember_login', '1', time() + 7*24*60*60, '/');
+            setcookie('session_expires', (time() + 7*24*60*60), time() + 7*24*60*60, '/');
+        } else {
+            // Nếu không check: lưu phiên đăng nhập trong 1 ngày
+            setcookie('remember_login', '1', time() + 24*60*60, '/');
+            setcookie('session_expires', (time() + 24*60*60), time() + 24*60*60, '/');
+        }
         
         $stmt->close();
         echo json_encode([

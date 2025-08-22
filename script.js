@@ -140,7 +140,7 @@ function setFilter(filter) {
   
   // Xử lý filter user
   if (filter === 'user') {
-    loadUserContent();
+    // loadUserContent() sẽ được gọi từ setFilter
     return;
   }
   
@@ -1280,6 +1280,7 @@ window.onload = () => {
   
   // Xử lý các filter đặc biệt ngay khi load trang
   if (filterFromUrl === 'user') {
+    console.log('Filter is user, calling loadUserContent()...');
     loadUserContent();
     return;
   }
@@ -1341,4 +1342,561 @@ function initializeBasicFunctions() {
       }
     }
   });
+}
+
+// ---------------------------------------------------------
+// User Management Functions
+// ---------------------------------------------------------
+
+// Load danh sách người dùng
+function loadUsersList() {
+  console.log('loadUsersList() called');
+  const userTableBody = document.getElementById('user-table-body');
+  if (!userTableBody) {
+    console.error('user-table-body not found');
+    return;
+  }
+  
+  console.log('Fetching users from get_users_list.php...');
+  fetch('get_users_list.php')
+    .then(response => {
+      console.log('Response status:', response.status);
+      return response.json();
+    })
+    .then(data => {
+      console.log('Response data:', data);
+      if (data.success) {
+        renderUsersTable(data.users);
+      } else {
+        console.error('Error loading users:', data.message);
+        userTableBody.innerHTML = '<tr><td colspan="6" class="no-data">Không thể tải danh sách người dùng: ' + data.message + '</td></tr>';
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      userTableBody.innerHTML = '<tr><td colspan="6" class="no-data">Có lỗi xảy ra khi tải dữ liệu: ' + error.message + '</td></tr>';
+    });
+}
+
+// Render bảng người dùng
+function renderUsersTable(users) {
+  const userTableBody = document.getElementById('user-table-body');
+  if (!userTableBody) return;
+  
+  if (users.length === 0) {
+    userTableBody.innerHTML = '<tr><td colspan="6" class="no-data">Chưa có người dùng nào</td></tr>';
+    return;
+  }
+  
+  let html = '';
+  users.forEach(user => {
+    const roleText = user.is_admin ? 'Quản trị viên' : 'Người dùng';
+    const roleClass = user.is_admin ? 'admin' : 'user';
+    const statusText = user.is_active ? 'Hoạt động' : 'Bị tắt';
+    const statusClass = user.is_active ? 'active' : 'inactive';
+    const toggleText = user.is_active ? 'Tắt' : 'Bật';
+    const toggleClass = user.is_active ? '' : 'deactivated';
+    
+    html += `
+      <tr>
+        <td>${user.id}</td>
+        <td>${escapeHtml(user.name)}</td>
+        <td>${escapeHtml(user.phone)}</td>
+        <td><span class="status-badge ${roleClass}">${roleText}</span></td>
+        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+        <td class="user-actions-cell">
+          <button class="btn-edit" onclick="showEditUserModal(${user.id}, '${escapeHtml(user.name)}', '${escapeHtml(user.phone)}', ${user.is_admin})" title="Sửa người dùng">
+            ✏️
+          </button>
+          <button class="btn-toggle ${toggleClass}" onclick="toggleUserStatus(${user.id}, ${user.is_active ? 0 : 1})" title="${toggleText} người dùng" ${user.id == getCurrentUserId() ? 'disabled' : ''}>
+            ${user.is_active ? '🔒' : '🔓'}
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+  
+  userTableBody.innerHTML = html;
+}
+
+// Escape HTML để tránh XSS
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// Lấy ID của user hiện tại từ session
+let currentUserId = null;
+
+function getCurrentUserId() {
+  return currentUserId;
+}
+
+// Hiển thị modal thêm người dùng
+function showAddUserModal() {
+  const modal = document.getElementById('add-user-modal');
+  if (modal) {
+    modal.style.display = 'block';
+    document.getElementById('add-user-form').reset();
+  }
+}
+
+// Đóng modal thêm người dùng
+function closeAddUserModal() {
+  const modal = document.getElementById('add-user-modal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+}
+
+// Hiển thị modal chỉnh sửa người dùng
+function showEditUserModal(userId, name, phone, isAdmin) {
+  const modal = document.getElementById('edit-user-modal');
+  if (modal) {
+    document.getElementById('edit-user-id').value = userId;
+    document.getElementById('edit-user-name').value = name;
+    document.getElementById('edit-user-phone').value = phone;
+    document.getElementById('edit-user-password').value = ''; // Reset password field
+    document.getElementById('edit-user-role').value = isAdmin ? 1 : 0;
+    modal.style.display = 'block';
+  }
+}
+
+// Đóng modal chỉnh sửa người dùng
+function closeEditUserModal() {
+  const modal = document.getElementById('edit-user-modal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+}
+
+// Hiển thị modal chỉnh sửa thông tin cá nhân
+function showEditProfileModal() {
+  const modal = document.getElementById('edit-profile-modal');
+  if (modal) {
+    modal.style.display = 'block';
+  }
+}
+
+// Đóng modal chỉnh sửa thông tin cá nhân
+function closeEditProfileModal() {
+  const modal = document.getElementById('edit-profile-modal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+}
+
+// Toggle trạng thái người dùng
+function toggleUserStatus(userId, newStatus) {
+  if (!confirm(`Bạn có chắc chắn muốn ${newStatus ? 'bật' : 'tắt'} người dùng này?`)) {
+    return;
+  }
+  
+  const formData = new FormData();
+  formData.append('user_id', userId);
+  formData.append('status', newStatus);
+  
+  fetch('toggle_user_status.php', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert(data.message);
+      loadUsersList(); // Reload danh sách
+    } else {
+      alert('Lỗi: ' + data.message);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Có lỗi xảy ra khi cập nhật trạng thái người dùng');
+  });
+}
+
+// Biến để theo dõi xem đã khởi tạo user management chưa
+let userManagementInitialized = false;
+
+// Khởi tạo event listeners cho quản lý người dùng
+function initializeUserManagement() {
+  console.log('initializeUserManagement() called');
+  
+  // Kiểm tra element cần thiết
+  const userTableBody = document.getElementById('user-table-body');
+  if (!userTableBody) {
+    console.error('Cannot initialize user management: user-table-body not found');
+    return false;
+  }
+  
+  // Tránh khởi tạo nhiều lần
+  if (userManagementInitialized) {
+    console.log('User management already initialized, just reloading users list');
+    loadUsersList();
+    return true;
+  }
+  
+  console.log('Initializing user management for the first time...');
+  
+  // Event listener cho form thêm người dùng
+  const addUserForm = document.getElementById('add-user-form');
+  if (addUserForm) {
+    addUserForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(this);
+      
+      fetch('add_new_user.php', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert(data.message);
+          closeAddUserModal();
+          loadUsersList(); // Reload danh sách
+        } else {
+          alert('Lỗi: ' + data.message);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Có lỗi xảy ra khi thêm người dùng');
+      });
+    });
+  }
+  
+  // Event listener cho form chỉnh sửa người dùng
+  const editUserForm = document.getElementById('edit-user-form');
+  if (editUserForm) {
+    editUserForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(this);
+      
+      fetch('update_user.php', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert(data.message);
+          closeEditUserModal();
+          loadUsersList(); // Reload danh sách
+        } else {
+          alert('Lỗi: ' + data.message);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Có lỗi xảy ra khi cập nhật người dùng');
+      });
+    });
+  }
+  
+  // Event listener cho form chỉnh sửa thông tin cá nhân
+  const editProfileForm = document.getElementById('edit-profile-form');
+  if (editProfileForm) {
+    editProfileForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(this);
+      
+      fetch('update_user.php', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          showSuccessModal(data.message || 'Cập nhật thông tin thành công!');
+          closeEditProfileModal();
+          // Reload user content để cập nhật thông tin hiển thị
+          setTimeout(() => {
+            loadUserContent();
+          }, 1500);
+        } else {
+          showErrorModal('Lỗi: ' + (data.message || 'Không thể cập nhật thông tin'));
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        showErrorModal('Có lỗi xảy ra khi cập nhật thông tin cá nhân');
+      });
+    });
+  }
+  
+  // Đóng modal khi click ra ngoài
+  window.onclick = function(event) {
+    const addModal = document.getElementById('add-user-modal');
+    const editModal = document.getElementById('edit-user-modal');
+    const editProfileModal = document.getElementById('edit-profile-modal');
+    
+    if (event.target === addModal) {
+      closeAddUserModal();
+    }
+    if (event.target === editModal) {
+      closeEditUserModal();
+    }
+    if (event.target === editProfileModal) {
+      closeEditProfileModal();
+    }
+  };
+  
+  // Đánh dấu đã khởi tạo
+  userManagementInitialized = true;
+  
+  // Load danh sách người dùng khi khởi tạo
+  console.log('Calling loadUsersList() from initializeUserManagement');
+  loadUsersList();
+  
+  return true;
+}
+
+// Event listener cũ đã được xóa để tránh xung đột
+// initializeUserManagement() sẽ được gọi từ loadUserContent() sau khi DOM sẵn sàng
+
+// Functions để hiển thị modal thông báo
+function showSuccessModal(message) {
+  const modal = document.getElementById('message-modal');
+  if (modal) {
+    const messageText = document.getElementById('message-text');
+    if (messageText) {
+      messageText.textContent = message;
+    }
+    modal.style.display = 'flex';
+  } else {
+    // Fallback nếu không có modal, sử dụng alert
+    alert('Thành công: ' + message);
+  }
+}
+
+function showErrorModal(message) {
+  const modal = document.getElementById('message-modal');
+  if (modal) {
+    const messageText = document.getElementById('message-text');
+    if (messageText) {
+      messageText.textContent = message;
+    }
+    // Thay đổi class để hiển thị lỗi
+    modal.classList.add('error');
+    modal.style.display = 'flex';
+  } else {
+    // Fallback nếu không có modal, sử dụng alert
+    alert('Lỗi: ' + message);
+  }
+}
+
+function closeMessageModal() {
+  const modal = document.getElementById('message-modal');
+  if (modal) {
+    modal.style.display = 'none';
+    modal.classList.remove('error');
+  }
+}
+
+// Function để khởi tạo event listener cho form edit profile (user thường)
+function initializeProfileEventListeners() {
+  console.log('initializeProfileEventListeners() called');
+  
+  // Event listener cho form chỉnh sửa thông tin cá nhân
+  const editProfileForm = document.getElementById('edit-profile-form');
+  if (editProfileForm) {
+    console.log('edit-profile-form found, adding event listener');
+    editProfileForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      console.log('edit-profile-form submitted');
+      
+      const formData = new FormData(this);
+      console.log('Form data:', formData);
+      
+      fetch('update_user.php', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Response from update_user.php:', data);
+        if (data.success) {
+          showSuccessModal(data.message || 'Cập nhật thông tin thành công!');
+          closeEditProfileModal();
+          // Reload user content để cập nhật thông tin hiển thị
+          setTimeout(() => {
+            loadUserContent();
+          }, 1500);
+        } else {
+          showErrorModal('Lỗi: ' + (data.message || 'Không thể cập nhật thông tin'));
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        showErrorModal('Có lỗi xảy ra khi cập nhật thông tin cá nhân');
+      });
+    });
+    console.log('Event listener added to edit-profile-form');
+  } else {
+    console.error('edit-profile-form not found in initializeProfileEventListeners');
+  }
+}
+
+// Thêm event listener cho khi user content được load
+function loadUserContent() {
+  console.log('loadUserContent() called');
+  const userContent = document.getElementById('user-content');
+  const vehicleList = document.getElementById('vehicle-list');
+  const groupControls = document.getElementById('group-controls');
+  
+  if (!userContent) {
+    console.error('user-content element not found');
+    return;
+  }
+  
+  // Ẩn vehicle list và group controls
+  if (vehicleList) vehicleList.style.display = 'none';
+  if (groupControls) groupControls.style.display = 'none';
+  
+  // Hiển thị user content
+  userContent.style.display = 'block';
+  
+  // Fetch user content based on role
+  console.log('Fetching user content from get_user_content.php...');
+  fetch('get_user_content.php')
+    .then(res => res.json())
+    .then(data => {
+      console.log('User content response:', data);
+      if (data.success) {
+        console.log('Setting userContent.innerHTML...');
+        console.log('Content to be inserted:', data.content);
+        
+        // Lưu current user ID từ server
+        if (data.current_user_id) {
+          currentUserId = data.current_user_id;
+          console.log('Current user ID set to:', currentUserId);
+        }
+        
+        userContent.innerHTML = data.content;
+        console.log('userContent.innerHTML set, checking for user-table-body...');
+        
+        // Debug: kiểm tra ngay sau khi set innerHTML
+        const immediateCheck = document.getElementById('user-table-body');
+        console.log('Immediate check for user-table-body:', immediateCheck);
+        
+        // Debug: kiểm tra userContent có HTML không
+        console.log('userContent.children.length:', userContent.children.length);
+        console.log('userContent.innerHTML length:', userContent.innerHTML.length);
+        // Cập nhật tiêu đề trang
+        updatePageTitle();
+        
+        // Nếu là admin, khởi tạo quản lý người dùng
+        if (data.is_admin) {
+          console.log('User is admin, initializing user management...');
+          
+          // Phương án 1: Thử ngay lập tức
+          const immediateTableBody = document.getElementById('user-table-body');
+          if (immediateTableBody) {
+            console.log('user-table-body found immediately, initializing...');
+            initializeUserManagement();
+          } else {
+            console.log('user-table-body not found immediately, using MutationObserver...');
+            
+            // Phương án 2: Sử dụng MutationObserver
+            const observer = new MutationObserver(function(mutations) {
+              mutations.forEach(function(mutation) {
+                if (mutation.type === 'childList') {
+                  const userTableBody = document.getElementById('user-table-body');
+                  if (userTableBody) {
+                    console.log('user-table-body found via MutationObserver, initializing...');
+                    observer.disconnect(); // Dừng observer
+                    initializeUserManagement();
+                  }
+                }
+              });
+            });
+            
+            // Theo dõi thay đổi trong userContent
+            observer.observe(userContent, {
+              childList: true,
+              subtree: true
+            });
+            
+            // Fallback: Dừng observer sau 5 giây và thử timeout
+            setTimeout(() => {
+              observer.disconnect();
+              console.log('MutationObserver timeout, trying setTimeout fallback...');
+              
+              setTimeout(() => {
+                const userTableBody = document.getElementById('user-table-body');
+                if (userTableBody) {
+                  console.log('user-table-body found via setTimeout fallback, initializing...');
+                  initializeUserManagement();
+                } else {
+                  console.error('user-table-body not found even with all methods');
+                  // Debug: In ra toàn bộ userContent HTML
+                  console.log('userContent.innerHTML:', userContent.innerHTML);
+                }
+              }, 500);
+            }, 5000);
+          }
+        } else {
+          console.log('User is not admin, initializing profile event listeners...');
+          
+          // Phương án 1: Thử ngay lập tức
+          const immediateEditProfileForm = document.getElementById('edit-profile-form');
+          if (immediateEditProfileForm) {
+            console.log('edit-profile-form found immediately, initializing...');
+            initializeProfileEventListeners();
+          } else {
+            console.log('edit-profile-form not found immediately, using MutationObserver...');
+            
+            // Phương án 2: Sử dụng MutationObserver
+            const observer = new MutationObserver(function(mutations) {
+              mutations.forEach(function(mutation) {
+                if (mutation.type === 'childList') {
+                  const editProfileForm = document.getElementById('edit-profile-form');
+                  if (editProfileForm) {
+                    console.log('edit-profile-form found via MutationObserver, initializing...');
+                    observer.disconnect(); // Dừng observer
+                    initializeProfileEventListeners();
+                  }
+                }
+              });
+            });
+            
+            // Theo dõi thay đổi trong userContent
+            observer.observe(userContent, {
+              childList: true,
+              subtree: true
+            });
+            
+            // Fallback: Dừng observer sau 3 giây
+            setTimeout(() => {
+              observer.disconnect();
+              console.log('MutationObserver timeout, trying setTimeout fallback...');
+              
+              setTimeout(() => {
+                const editProfileForm = document.getElementById('edit-profile-form');
+                if (editProfileForm) {
+                  console.log('edit-profile-form found via setTimeout fallback, initializing...');
+                  initializeProfileEventListeners();
+                } else {
+                  console.error('Failed to find edit-profile-form after all attempts');
+                  // Debug: In ra toàn bộ userContent HTML
+                  console.log('userContent.innerHTML:', userContent.innerHTML);
+                }
+              }, 1000);
+            }, 3000);
+          }
+        }
+      } else {
+        console.error('Failed to load user content:', data.message);
+        userContent.innerHTML = '<p class="error-message">Không thể tải nội dung người dùng: ' + data.message + '</p>';
+      }
+    })
+    .catch(error => {
+      console.error('Error loading user content:', error);
+      userContent.innerHTML = '<p class="error-message">Có lỗi xảy ra khi tải nội dung: ' + error.message + '</p>';
+    });
 }
