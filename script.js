@@ -118,7 +118,7 @@ function loadVehicleData() {
 // Định kỳ tải lại dữ liệu (trừ khi ở tab chọn nhiều để tránh mất lựa chọn)
 function periodicRefresh() {
   setInterval(() => {
-    if (currentFilter !== 'group') {
+    if (currentFilter !== 'group' && currentFilter !== 'maintenance' && currentFilter !== 'repair' && currentFilter !== 'user') {
       loadVehicleData();
     }
   }, 5000);
@@ -144,6 +144,24 @@ function setFilter(filter) {
     return;
   }
   
+  // Xử lý filter maintenance
+  if (filter === 'maintenance') {
+    const maintenanceContent = document.getElementById('maintenance-content');
+    const vehicleList = document.getElementById('vehicle-list');
+    if (maintenanceContent) maintenanceContent.style.display = 'block';
+    if (vehicleList) vehicleList.style.display = 'none';
+    return;
+  }
+  
+  // Xử lý filter repair
+  if (filter === 'repair') {
+    const repairContent = document.getElementById('repair-content');
+    const vehicleList = document.getElementById('vehicle-list');
+    if (repairContent) repairContent.style.display = 'block';
+    if (vehicleList) vehicleList.style.display = 'none';
+    return;
+  }
+  
   // Khi rời tab Khách đoàn, xóa lựa chọn
   if (filter !== 'group') {
     groupSelection = [];
@@ -155,12 +173,17 @@ function setFilter(filter) {
     nav.classList.remove('open');
   }
   
-  // Ẩn user content và hiển thị vehicle list
+  // Ẩn user content, maintenance content, repair content và hiển thị vehicle list
   const userContent = document.getElementById('user-content');
+  const maintenanceContent = document.getElementById('maintenance-content');
+  const repairContent = document.getElementById('repair-content');
   const vehicleList = document.getElementById('vehicle-list');
   if (userContent) userContent.style.display = 'none';
+  if (maintenanceContent) maintenanceContent.style.display = 'none';
+  if (repairContent) repairContent.style.display = 'none';
   if (vehicleList) vehicleList.style.display = 'block';
   
+  // Chỉ render vehicles cho các filter thông thường
   renderVehicles();
   updatePageTitle();
 }
@@ -228,7 +251,7 @@ function renderVehicles() {
     const table = document.createElement('table');
     table.className = 'repair-table';
     const thead = document.createElement('thead');
-    thead.innerHTML = '<tr><th>Số xe</th><th>Tình trạng</th><th>Hành động</th></tr>';
+    thead.innerHTML = '<tr><th>Số xe</th><th>Ghi chú hỏng hóc</th><th>Lần sửa chữa cuối</th><th>Hành động</th></tr>';
     table.appendChild(thead);
     const tbody = document.createElement('tbody');
     let hasRow = false;
@@ -242,19 +265,26 @@ function renderVehicles() {
       tdId.textContent = `Xe ${i}`;
       const tdStatus = document.createElement('td');
       tdStatus.textContent = data.repairNotes || '';
+      const tdLastRepair = document.createElement('td');
+      tdLastRepair.textContent = data.last_repair_status || 'Chưa có';
       const tdAction = document.createElement('td');
       tdAction.innerHTML = `
         <button class="edit-notes-btn" onclick="showNotesEditor(${i})">✏️</button>
-        <button class="workshop-out-btn" onclick="toggleVehicle(${i})">Xuất xưởng</button>
+        <button class="repair-history-btn" onclick="showRepairHistory(${i})" title="Xem lịch sử sửa chữa">🔧</button>
       `;
       tr.appendChild(tdId);
       tr.appendChild(tdStatus);
+      tr.appendChild(tdLastRepair);
       tr.appendChild(tdAction);
       tbody.appendChild(tr);
     }
     table.appendChild(tbody);
     if (hasRow) {
-      container.appendChild(table);
+      // Bọc bảng trong container để có thể scroll ngang trên mobile
+      const tableContainer = document.createElement('div');
+      tableContainer.className = 'repair-table-container';
+      tableContainer.appendChild(table);
+      container.appendChild(tableContainer);
     } else {
       const p = document.createElement('p');
       p.className = 'no-data';
@@ -366,8 +396,8 @@ function renderVehicles() {
           statusText = 'Đang chạy';
           statusClass = 'status-running';
         }
-      } else if (data.repairNotes && data.repairNotes.trim()) {
-        statusText = data.repairNotes;
+      } else if (data.maintenance_status && data.maintenance_status.trim()) {
+        statusText = data.maintenance_status;
         statusClass = 'status-notes';
       } else {
         statusText = 'Sẵn sàng';
@@ -742,18 +772,20 @@ function updateTimers() {
 function updatePageTitle() {
   const titleEl = document.getElementById('page-title');
   if (!titleEl) return;
-  const titles = {
-    all: 'Tất cả xe',
-    inactive: 'Xe trong xưởng',
-    active: 'Xe ngoài bãi',
-    running: 'Xe đang chạy',
-    waiting: 'Xe đang chờ',
-    expired: 'Xe hết giờ',
-    paused: 'Xe tạm dừng',
-    route: 'Xe cung đường',
-    group: 'Khách đoàn',
-    user: 'Quản lý người dùng'
-  };
+            const titles = {
+        all: 'Tất cả xe',
+        inactive: 'Xe trong xưởng',
+        active: 'Xe ngoài bãi',
+        running: 'Xe đang chạy',
+        waiting: 'Xe đang chờ',
+        expired: 'Xe hết giờ',
+        paused: 'Xe tạm dừng',
+        route: 'Xe cung đường',
+        group: 'Khách đoàn',
+        user: 'Quản lý người dùng',
+        maintenance: 'Lịch sử bảo dưỡng xe',
+        repair: 'Lịch sử sửa chữa xe'
+      };
   titleEl.textContent = titles[currentFilter] || '';
 }
 
@@ -845,6 +877,303 @@ function closeNotesModal() {
   sendingToWorkshop = false;
 }
 
+// Hiển thị lịch sử sửa chữa của xe
+    function showRepairHistory(vehicleId) {
+        fetch('get_repair_history.php?vehicle_id=' + vehicleId)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.repairs && Array.isArray(data.repairs)) {
+                    // Lấy 5 lần sửa chữa gần nhất
+                    const recentRepairs = data.repairs.slice(0, 5);
+                    let historyHtml = '<div class="repair-history-table-container">';
+                    
+                    if (recentRepairs.length === 0) {
+                        historyHtml += '<div class="no-repair-history">';
+                        historyHtml += '<h3>Xe ' + vehicleId + ' chưa có lịch sử sửa chữa</h3>';
+                        historyHtml += '<p class="no-data-message">Chưa có bản ghi sửa chữa nào cho xe này</p>';
+                        historyHtml += '<div class="repair-history-actions">';
+                        historyHtml += '<button class="btn-primary" onclick="showAddRepairModal(' + vehicleId + ')">➕ Thêm lịch sử sửa chữa</button>';
+                        
+                        // Xe không có lịch sử sửa chữa thì không thể xuất xưởng
+                        historyHtml += '<button class="btn-warning" disabled>🚗 Xuất xưởng</button>';
+                        historyHtml += '</div>';
+                        historyHtml += '</div>';
+                    } else {
+                        historyHtml += '<h3>5 lần sửa chữa gần nhất của Xe ' + vehicleId + '</h3>';
+                        historyHtml += '<div class="repair-history-actions">';
+                        historyHtml += '<button class="btn-primary" onclick="showAddRepairModal(' + vehicleId + ')">➕ Thêm sửa chữa mới</button>';
+                        
+                        // Kiểm tra tất cả lịch sử sửa chữa để quyết định có thể xuất xưởng không
+                        const canExport = recentRepairs.every(repair => 
+                            repair.status === 'completed' || repair.status === 'cancelled'
+                        );
+                        
+                        if (canExport) {
+                            historyHtml += '<button class="btn-success" onclick="exportFromWorkshop(' + vehicleId + ')">🚗 Xuất xưởng</button>';
+                        } else {
+                            historyHtml += '<button class="btn-warning" disabled>🚗 Xuất xưởng</button>';
+                        }
+                        historyHtml += '</div>';
+                        
+                        historyHtml += '<table class="repair-history-table">';
+                        historyHtml += '<thead><tr><th>Ngày sửa</th><th>Loại sửa chữa</th><th>Mô tả</th><th>Chi phí</th><th>Trạng thái</th><th>Thợ sửa</th><th>Thao tác</th></tr></thead>';
+                        historyHtml += '<tbody>';
+                        
+                        recentRepairs.forEach(repair => {
+                            const statusText = {
+                                'pending': 'Chờ xử lý',
+                                'in_progress': 'Đang sửa',
+                                'completed': 'Hoàn thành',
+                                'cancelled': 'Đã hủy'
+                            }[repair.status] || repair.status;
+                            
+                            historyHtml += `
+                                <tr>
+                                    <td>${repair.repair_date || '-'}</td>
+                                    <td><strong>${repair.repair_type || 'Không có'}</strong></td>
+                                    <td>${repair.description || 'Không có mô tả'}</td>
+                                    <td>${repair.cost > 0 ? repair.cost.toLocaleString('vi-VN') + ' VNĐ' : '-'}</td>
+                                    <td><span class="status-badge status-${repair.status || 'unknown'}">${statusText}</span></td>
+                                    <td>${repair.technician || '-'}</td>
+                                    <td>
+                                        <button class="edit-repair-btn" onclick="editRepairFromHistory(${repair.id})" title="Sửa sửa chữa">✏️</button>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        
+                        historyHtml += '</tbody></table>';
+                    }
+                    
+                    historyHtml += '</div>';
+                    
+                    // Hiển thị modal
+                    const modal = document.getElementById('repair-history-modal');
+                    const content = document.getElementById('repair-history-content');
+                    if (modal && content) {
+                        content.innerHTML = historyHtml;
+                        modal.style.display = 'block';
+                    } else {
+                        console.error('Modal elements not found');
+                        alert('Không thể hiển thị modal lịch sử sửa chữa');
+                    }
+                } else {
+                    console.error('Invalid data structure:', data);
+                    alert('Dữ liệu không hợp lệ hoặc không có lịch sử sửa chữa');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi tải lịch sử sửa chữa');
+            });
+    }
+    
+    function closeRepairHistoryModal() {
+        document.getElementById('repair-history-modal').style.display = 'none';
+    }
+    
+    // Sửa sửa chữa từ lịch sử
+    function editRepairFromHistory(repairId) {
+        // Đóng modal lịch sử trước
+        closeRepairHistoryModal();
+        
+        // Mở modal sửa chữa trước
+        document.getElementById('repair-modal').style.display = 'block';
+        
+        // Load danh sách xe trước
+        loadVehicleOptions().then(() => {
+            // Sau khi load xe xong, mới load thông tin sửa chữa
+            fetch('get_repair_by_id.php?id=' + repairId)
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Repair data:', data); // Debug log
+                    if (data.success) {
+                        const repair = data.repair;
+                        console.log('Repair object:', repair); // Debug log
+                        console.log('Vehicle ID:', repair.vehicle_id); // Debug log
+                        
+                        // Fill form với dữ liệu hiện tại
+                        document.getElementById('repair-id').value = repair.id;
+                        document.getElementById('vehicle-select').value = repair.vehicle_id;
+                        document.getElementById('repair-type').value = repair.repair_type;
+                        document.getElementById('repair-description').value = repair.description;
+                        document.getElementById('repair-cost').value = repair.cost;
+                        document.getElementById('repair-date').value = repair.repair_date;
+                        document.getElementById('technician').value = repair.technician || '';
+                        document.getElementById('repair-status').value = repair.status;
+                        
+                        // Disable select xe và set text cố định
+                        const vehicleSelect = document.getElementById('vehicle-select');
+                        vehicleSelect.disabled = true;
+                        vehicleSelect.style.backgroundColor = '#f5f5f5';
+                        vehicleSelect.style.cursor = 'not-allowed';
+                        
+                        // Set mode sửa
+                        document.getElementById('repair-modal-title').textContent = '✏️ Sửa sửa chữa';
+                        document.getElementById('repair-submit-btn').textContent = 'Cập nhật sửa chữa';
+                    } else {
+                        alert('Lỗi: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Có lỗi xảy ra khi tải thông tin sửa chữa');
+                });
+        });
+    }
+    
+    // Thêm sửa chữa mới từ lịch sử
+    function showAddRepairModal(vehicleId) {
+        // Đóng modal lịch sử trước
+        closeRepairHistoryModal();
+        
+        // Mở modal sửa chữa trước
+        document.getElementById('repair-modal').style.display = 'block';
+        
+        // Reset form và set mode thêm mới
+        document.getElementById('repair-form').reset();
+        document.getElementById('repair-modal-title').textContent = '➕ Thêm sửa chữa mới';
+        document.getElementById('repair-submit-btn').textContent = 'Lưu sửa chữa';
+        document.getElementById('repair-id').value = '';
+        
+        // Load danh sách xe trước
+        loadVehicleOptions().then(() => {
+            // Sau khi load xe xong, mới set value và disable
+            document.getElementById('vehicle-select').value = vehicleId;
+            
+            // Disable select xe và set text cố định
+            const vehicleSelect = document.getElementById('vehicle-select');
+            vehicleSelect.disabled = true;
+            vehicleSelect.style.backgroundColor = '#f5f5f5';
+            vehicleSelect.style.cursor = 'not-allowed';
+        });
+    }
+    
+    // Xuất xe khỏi xưởng
+    function exportFromWorkshop(vehicleId) {
+        if (confirm('Bạn có chắc chắn muốn xuất xe ' + vehicleId + ' khỏi xưởng?')) {
+            // Gọi API để xuất xe
+            fetch('save_vehicle_status.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    id: vehicleId,
+                    active: 1
+                })
+            })
+            .then(response => response.text())
+            .then(data => {
+                if (data === 'OK') {
+                    alert('Đã xuất xe ' + vehicleId + ' khỏi xưởng thành công!');
+                    closeRepairHistoryModal();
+                    location.reload(); // Reload trang để cập nhật
+                } else {
+                    alert('Lỗi: ' + data);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi xuất xe khỏi xưởng');
+            });
+        }
+    }
+    
+    // Đóng modal sửa chữa
+    function closeRepairModal() {
+        document.getElementById('repair-modal').style.display = 'none';
+        document.getElementById('repair-form').reset();
+        
+        // Reset trạng thái select xe
+        const vehicleSelect = document.getElementById('vehicle-select');
+        if (vehicleSelect) {
+            vehicleSelect.disabled = false;
+            vehicleSelect.style.backgroundColor = '';
+            vehicleSelect.style.cursor = '';
+        }
+    }
+    
+    // Load danh sách xe vào select
+    function loadVehicleOptions() {
+        return fetch('get_vehicles.php')
+            .then(response => response.json())
+            .then(data => {
+                console.log('Vehicles data:', data); // Debug log
+                const vehicleSelect = document.getElementById('vehicle-select');
+                if (vehicleSelect) {
+                    // Clear existing options except the first one
+                    vehicleSelect.innerHTML = '<option value="">Chọn xe</option>';
+                    
+                    // Xử lý data dạng object {1: {...}, 2: {...}}
+                    Object.values(data).forEach(vehicle => {
+                        console.log('Adding vehicle:', vehicle); // Debug log
+                        const option = document.createElement('option');
+                        option.value = vehicle.id;
+                        option.textContent = `Xe ${vehicle.id}`;
+                        vehicleSelect.appendChild(option);
+                    });
+                    
+                    console.log('Final vehicle select options:', vehicleSelect.innerHTML); // Debug log
+                }
+                return data;
+            })
+            .catch(error => {
+                console.error('Error loading vehicles:', error);
+                throw error;
+            });
+    }
+    
+    // Xử lý form thêm/sửa sửa chữa
+    document.addEventListener('DOMContentLoaded', function() {
+        const repairForm = document.getElementById('repair-form');
+        if (repairForm) {
+            repairForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const repairId = document.getElementById('repair-id').value;
+                const vehicleId = document.getElementById('vehicle-select').value;
+                
+                // Debug logging
+                console.log('Form data before submit:');
+                for (let [key, value] of formData.entries()) {
+                    console.log(key + ': ' + value);
+                }
+                console.log('Repair ID:', repairId);
+                console.log('Vehicle ID:', vehicleId);
+                
+                // Đảm bảo vehicle_id được gửi (vì select có thể bị disable)
+                if (vehicleId) {
+                    formData.set('vehicle_id', vehicleId);
+                }
+                
+                // Xác định endpoint dựa trên mode (thêm mới hoặc sửa)
+                const endpoint = repairId ? 'update_repair_record.php' : 'add_repair_record.php';
+                
+                fetch(endpoint, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const message = repairId ? 'Đã cập nhật sửa chữa thành công!' : 'Đã thêm sửa chữa mới thành công!';
+                        alert(message);
+                        closeRepairModal();
+                        location.reload(); // Reload trang để cập nhật
+                    } else {
+                        alert('Lỗi: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Có lỗi xảy ra khi xử lý sửa chữa');
+                });
+            });
+        }
+    });
+
 // Lưu tình trạng xe
 function saveNotes() {
   const id = editingNotesId;
@@ -861,6 +1190,34 @@ function saveNotes() {
     vehicleData[id].repairNotes = notes;
     vehicleData[id].active = false;
     updateVehicleStatus(id, { repairNotes: notes, active: false });
+    
+    // Tự động tạo bản ghi sửa chữa khi báo cáo hỏng hóc
+    if (notes) {
+      const formData = new FormData();
+      formData.append('vehicle_id', id);
+      formData.append('repair_type', 'Hỏng hóc');
+      formData.append('description', notes);
+      formData.append('repair_date', new Date().toISOString().split('T')[0]);
+      formData.append('status', 'pending');
+      formData.append('cost', '0');
+      
+      fetch('add_repair_record.php', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          console.log('Đã tạo bản ghi sửa chữa tự động');
+        } else {
+          console.error('Lỗi tạo bản ghi sửa chữa:', data.message);
+        }
+      })
+      .catch(error => {
+        console.error('Error creating repair record:', error);
+      });
+    }
+    
     sendingToWorkshop = false;
   } else {
     vehicleData[id].repairNotes = notes;
@@ -921,9 +1278,27 @@ window.onload = () => {
   // Luôn khởi tạo các event listeners và chức năng cơ bản
   initializeBasicFunctions();
   
-  // Xử lý filter user ngay khi load trang
+  // Xử lý các filter đặc biệt ngay khi load trang
   if (filterFromUrl === 'user') {
     loadUserContent();
+    return;
+  }
+  
+  if (filterFromUrl === 'maintenance') {
+    const maintenanceContent = document.getElementById('maintenance-content');
+    const vehicleList = document.getElementById('vehicle-list');
+    if (maintenanceContent) maintenanceContent.style.display = 'block';
+    if (vehicleList) vehicleList.style.display = 'none';
+    updatePageTitle();
+    return;
+  }
+  
+  if (filterFromUrl === 'repair') {
+    const repairContent = document.getElementById('repair-content');
+    const vehicleList = document.getElementById('vehicle-list');
+    if (repairContent) repairContent.style.display = 'block';
+    if (vehicleList) vehicleList.style.display = 'none';
+    updatePageTitle();
     return;
   }
   
@@ -933,6 +1308,7 @@ window.onload = () => {
     groupControls.style.display = (currentFilter === 'group') ? 'flex' : 'none';
   }
   
+  // Chỉ load vehicle data cho các filter thông thường
   loadVehicleData();
   updateTimers();
   periodicRefresh();

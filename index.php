@@ -58,6 +58,8 @@ $isAdminUser = isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1;
       <a href="?filter=paused" id="tab-paused" class="<?= $filter == 'paused' ? 'active' : '' ?>">Xe tạm dừng</a>
       <a href="?filter=route" id="tab-route" class="<?= $filter == 'route' ? 'active' : '' ?>">Xe cung đường</a>
       <a href="?filter=group" id="tab-group" class="<?= $filter == 'group' ? 'active' : '' ?>">Khách đoàn</a>
+      <a href="?filter=maintenance" id="tab-maintenance" class="<?= $filter == 'maintenance' ? 'active' : '' ?>">Bảo dưỡng</a>
+      <a href="?filter=repair" id="tab-repair" class="<?= $filter == 'repair' ? 'active' : '' ?>">Sửa chữa</a>
     </nav>
   </header>
   <!-- Dynamic page title depending on tab -->
@@ -67,8 +69,22 @@ $isAdminUser = isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1;
   </div>
   
   <!-- User content area -->
-  <div id="user-content" class="user-content" style="display: none;">
+  <div id="user-content" class="user-content" <?= $filter === 'user' ? '' : 'style="display: none;"' ?>>
     <!-- User content will be loaded here -->
+  </div>
+  
+  <!-- Maintenance content area -->
+  <div id="maintenance-content" class="maintenance-content" <?= $filter === 'maintenance' ? '' : 'style="display: none;"' ?>>
+    <?php if ($filter === 'maintenance'): ?>
+      <?php include 'maintenance_history.php'; ?>
+    <?php endif; ?>
+  </div>
+  
+  <!-- Repair content area -->
+  <div id="repair-content" class="repair-content" <?= $filter === 'repair' ? '' : 'style="display: none;"' ?>>
+    <?php if ($filter === 'repair'): ?>
+      <?php include 'repair_history.php'; ?>
+    <?php endif; ?>
   </div>
   
   <!-- Controls for group (khách đoàn) actions -->
@@ -102,6 +118,95 @@ $isAdminUser = isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1;
         <button onclick="saveNotes()">Lưu</button>
         <button onclick="closeNotesModal()">Hủy</button>
       </div>
+    </div>
+  </div>
+  
+  <!-- Modal để xem lịch sử sửa chữa -->
+  <div id="repair-history-modal" class="modal">
+    <div class="modal-content" style="max-width: 600px;">
+      <span class="close" onclick="closeRepairHistoryModal()">&times;</span>
+      <h2>🔧 Lịch sử sửa chữa xe</h2>
+      <div id="repair-history-content">
+        <!-- Nội dung lịch sử sẽ được load ở đây -->
+      </div>
+      <div class="modal-actions">
+        <button onclick="closeRepairHistoryModal()">Đóng</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal để thêm/sửa sửa chữa -->
+  <div id="repair-modal" class="modal">
+    <div class="modal-content" style="max-width: 800px;">
+      <span class="close" onclick="closeRepairModal()">&times;</span>
+      <h2 id="repair-modal-title">➕ Thêm sửa chữa mới</h2>
+      
+      <form id="repair-form">
+        <input type="hidden" id="repair-id" name="repair_id">
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="vehicle-select">Xe:</label>
+            <select id="vehicle-select" name="vehicle_id" required>
+              <option value="">Chọn xe</option>
+              <!-- Options sẽ được load từ JavaScript -->
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="repair-type">Loại sửa chữa:</label>
+            <select id="repair-type" name="repair_type" required>
+              <option value="">Chọn loại</option>
+              <option value="Bảo dưỡng">Bảo dưỡng</option>
+              <option value="Sửa chữa">Sửa chữa</option>
+              <option value="Hỏng hóc">Hỏng hóc</option>
+              <option value="Thay thế">Thay thế</option>
+              <option value="Khác">Khác</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="repair-description">Mô tả:</label>
+            <textarea id="repair-description" name="description" rows="3" placeholder="Mô tả chi tiết sửa chữa..."></textarea>
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="repair-cost">Chi phí (VNĐ):</label>
+            <input type="number" id="repair-cost" name="cost" min="0" step="1000" placeholder="0">
+          </div>
+          
+          <div class="form-group">
+            <label for="repair-date">Ngày sửa chữa:</label>
+            <input type="date" id="repair-date" name="repair_date" required>
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="technician">Thợ sửa chữa:</label>
+            <input type="text" id="technician" name="technician" placeholder="Tên thợ sửa chữa">
+          </div>
+          
+          <div class="form-group">
+            <label for="repair-status">Trạng thái:</label>
+            <select id="repair-status" name="status" required>
+              <option value="pending">Chờ xử lý</option>
+              <option value="in_progress">Đang sửa</option>
+              <option value="completed">Hoàn thành</option>
+              <option value="cancelled">Đã hủy</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-actions">
+          <button type="submit" id="repair-submit-btn" class="btn-primary">Lưu sửa chữa</button>
+          <button type="button" onclick="closeRepairModal()" class="btn-secondary">Hủy</button>
+        </div>
+      </form>
     </div>
   </div>
   <!-- Always load script.js for basic functionality like menu toggle -->

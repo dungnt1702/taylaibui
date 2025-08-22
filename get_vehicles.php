@@ -8,7 +8,17 @@ if (!isset($_SESSION['user_id']) && !isset($_COOKIE['remember_login'])) {
   exit;
 }
 
-$result = $mysqli->query("SELECT * FROM vehicles ORDER BY id");
+$result = $mysqli->query("
+  SELECT 
+    v.*,
+    COALESCE(mh.status, '') as maintenance_status,
+    COALESCE(mh.notes, '') as maintenance_notes,
+    COALESCE(rh.status, '') as last_repair_status
+  FROM vehicles v
+  LEFT JOIN maintenance_history mh ON v.last_maintenance_id = mh.id
+  LEFT JOIN repair_history rh ON v.last_repair_id = rh.id
+  ORDER BY v.id
+");
 $data = [];
 
 while ($row = $result->fetch_assoc()) {
