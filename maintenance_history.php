@@ -2,6 +2,12 @@
 // File này sẽ được include vào index.php khi filter=maintenance
 // Không cần HTML head/body tags
 
+// Kiểm tra xem có kết nối database không
+if (!isset($mysqli)) {
+    echo '<p class="error">Lỗi: Không có kết nối database</p>';
+    return;
+}
+
 // Lấy danh sách xe với tình trạng bảo dưỡng cuối cùng
 $query = "
     SELECT 

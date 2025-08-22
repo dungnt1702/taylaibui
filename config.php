@@ -115,6 +115,14 @@ define('DEBUG_MODE', true);
 // Auto-include database configuration
 includeDatabase();
 
+// Verify database connection
+if (!isset($mysqli) || $mysqli->connect_error) {
+    if (DEBUG_MODE) {
+        error_log("Database connection failed: " . ($mysqli->connect_error ?? 'mysqli not set'));
+    }
+    die("Database connection failed! Please check your configuration.");
+}
+
 // Optional: Set environment-specific constants
 $environment = detectEnvironment();
 define('CURRENT_ENVIRONMENT', $environment);
