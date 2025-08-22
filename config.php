@@ -10,13 +10,17 @@ function detectEnvironment() {
     
     // Method 2: Check if running on localhost
     $is_localhost = in_array($server_name, ['localhost', '127.0.0.1', '::1']) ||
-                    in_array($server_addr, ['127.0.0.1', '::1']);
+                    in_array($server_addr, ['127.0.0.1', '::1']) ||
+                    strpos($server_name, 'localhost') !== false ||
+                    strpos($server_addr, '127.0.0.1') !== false;
     
     // Method 3: Check if running on development machine
     $is_dev = $is_localhost || 
               strpos($server_name, '.local') !== false ||
               strpos($server_name, '.test') !== false ||
-              strpos($server_name, '.dev') !== false;
+              strpos($server_name, '.dev') !== false ||
+              $server_name === 'localhost:8000' ||
+              $server_name === '127.0.0.1:8000';
     
     // Method 4: Check for specific production domains
     $production_domains = [
@@ -45,6 +49,11 @@ function detectEnvironment() {
         return 'development';
     }
     
+    // Method 7: Check for env.local file (alternative naming)
+    if (file_exists(__DIR__ . '/env.local')) {
+        return 'development';
+    }
+    
     // Default logic based on server detection
     if ($is_production) {
         return 'production';
@@ -52,6 +61,11 @@ function detectEnvironment() {
         return 'development';
     } else {
         // If unsure, default to development for safety
+        return 'development';
+    }
+    
+    // Force development mode for localhost testing
+    if ($is_localhost) {
         return 'development';
     }
 }
@@ -96,7 +110,7 @@ function includeDatabase() {
 }
 
 // Set debug mode (set to true for debugging, false for production)
-define('DEBUG_MODE', false);
+define('DEBUG_MODE', true);
 
 // Auto-include database configuration
 includeDatabase();
