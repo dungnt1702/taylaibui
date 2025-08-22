@@ -12,14 +12,11 @@ if (!isset($_SESSION['user_id'])) {
 
 $isAdmin = isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1;
 
-// Lấy thông tin user từ database thay vì session
-$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-if ($mysqli->connect_error) {
+// Kiểm tra database connection từ config.php
+if (!isset($mysqli) || $mysqli->connect_error) {
     echo json_encode(['success' => false, 'message' => 'Kết nối database thất bại']);
     exit;
 }
-
-$mysqli->set_charset("utf8");
 
 $currentUserId = $_SESSION['user_id'];
 $query = "SELECT name, phone, is_admin FROM users WHERE id = ?";

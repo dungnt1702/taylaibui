@@ -8,11 +8,24 @@ function detectEnvironment() {
     $server_name = $_SERVER['SERVER_NAME'] ?? '';
     $server_addr = $_SERVER['SERVER_ADDR'] ?? '';
     
+    // Debug logging for environment detection
+    if (defined('DEBUG_MODE') && DEBUG_MODE) {
+        error_log("=== Environment Detection Debug ===");
+        error_log("SERVER_NAME: " . $server_name);
+        error_log("SERVER_ADDR: " . $server_addr);
+        error_log("HTTP_HOST: " . ($_SERVER['HTTP_HOST'] ?? 'Not set'));
+        error_log("REQUEST_URI: " . ($_SERVER['REQUEST_URI'] ?? 'Not set'));
+    }
+    
     // Method 2: Check if running on localhost
     $is_localhost = in_array($server_name, ['localhost', '127.0.0.1', '::1']) ||
                     in_array($server_addr, ['127.0.0.1', '::1']) ||
                     strpos($server_name, 'localhost') !== false ||
-                    strpos($server_addr, '127.0.0.1') !== false;
+                    strpos($server_addr, '127.0.0.1') !== false ||
+                    // Check if running from command line (CLI)
+                    php_sapi_name() === 'cli' ||
+                    // Check if no server variables are set (likely CLI)
+                    empty($server_name) && empty($server_addr);
     
     // Method 3: Check if running on development machine
     $is_dev = $is_localhost || 
@@ -26,11 +39,21 @@ function detectEnvironment() {
     $production_domains = [
         'qlss.taylaibui.vn',       // Production domain
         'www.qlss.taylaibui.vn',   // Production domain with www
-        'qlss.taylaibui.vn',                // Alternative domain
-        'www.qlss.taylaibui.vn'             // Alternative domain with www
+        'tay99672.qlss.com',       // Production domain
+        'www.tay99672.qlss.com',   // Production domain with www
+        'qlss.com',                 // Alternative domain
+        'www.qlss.com'              // Alternative domain with www
     ];
     
     $is_production = in_array($server_name, $production_domains);
+    
+    // Method 4b: Check if not localhost (alternative production detection)
+    $is_not_localhost = !$is_localhost && 
+                        $server_name !== 'localhost' && 
+                        $server_name !== '127.0.0.1' && 
+                        $server_name !== '::1' &&
+                        strpos($server_name, 'localhost') === false &&
+                        strpos($server_name, '127.0.0.1') === false;
     
     // Method 5: Check environment variable (if set)
     $env_var = getenv('APP_ENV') ?: getenv('ENVIRONMENT');
@@ -45,6 +68,8 @@ function detectEnvironment() {
     // Method 6: Check for specific file existence
     if (file_exists(__DIR__ . '/.env.production')) {
         return 'production';
+    } elseif (file_exists(__DIR__ . '/env.production')) {
+        return 'production';
     } elseif (file_exists(__DIR__ . '/.env.local')) {
         return 'development';
     }
@@ -55,17 +80,17 @@ function detectEnvironment() {
     }
     
     // Default logic based on server detection
-    if ($is_production) {
+    if ($is_localhost) {
+        return 'development';
+    } elseif ($is_production) {
         return 'production';
     } elseif ($is_dev) {
         return 'development';
+    } elseif ($is_not_localhost) {
+        // If not localhost and not explicitly production, assume production
+        return 'production';
     } else {
         // If unsure, default to development for safety
-        return 'development';
-    }
-    
-    // Force development mode for localhost testing
-    if ($is_localhost) {
         return 'development';
     }
 }

@@ -8,6 +8,12 @@ $db_user = 'tay99672_qlss';
 $db_pass = '5nW1$m6u3';
 $db_name = 'tay99672_qlss';
 
+// Define constants for compatibility with legacy code
+define('DB_HOST', $db_host);
+define('DB_USER', $db_user);
+define('DB_PASS', $db_pass);
+define('DB_NAME', $db_name);
+
 // Create connection
 try {
     global $mysqli;
