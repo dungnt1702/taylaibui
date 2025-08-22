@@ -131,20 +131,36 @@ function setFilter(filter) {
   const url = new URL(window.location);
   url.searchParams.set('filter', filter);
   history.pushState({}, '', url);
+  
   // Hiển thị hoặc ẩn điều khiển Khách đoàn
   const groupControls = document.getElementById('group-controls');
   if (groupControls) {
     groupControls.style.display = (filter === 'group') ? 'flex' : 'none';
   }
+  
+  // Xử lý filter user
+  if (filter === 'user') {
+    loadUserContent();
+    return;
+  }
+  
   // Khi rời tab Khách đoàn, xóa lựa chọn
   if (filter !== 'group') {
     groupSelection = [];
   }
+  
   // Đóng menu trên thiết bị di động nếu đang mở
   const nav = document.getElementById('nav-menu');
   if (nav && nav.classList.contains('open')) {
     nav.classList.remove('open');
   }
+  
+  // Ẩn user content và hiển thị vehicle list
+  const userContent = document.getElementById('user-content');
+  const vehicleList = document.getElementById('vehicle-list');
+  if (userContent) userContent.style.display = 'none';
+  if (vehicleList) vehicleList.style.display = 'block';
+  
   renderVehicles();
   updatePageTitle();
 }
@@ -642,7 +658,8 @@ function updatePageTitle() {
     expired: 'Xe hết giờ',
     paused: 'Xe tạm dừng',
     route: 'Xe cung đường',
-    group: 'Khách đoàn'
+    group: 'Khách đoàn',
+    user: 'Quản lý người dùng'
   };
   titleEl.textContent = titles[currentFilter] || '';
 }
@@ -768,17 +785,58 @@ function toggleNav() {
   }
 }
 
+// Load user content based on user role
+function loadUserContent() {
+  const userContent = document.getElementById('user-content');
+  const vehicleList = document.getElementById('vehicle-list');
+  const groupControls = document.getElementById('group-controls');
+  
+  if (!userContent) return;
+  
+  // Ẩn vehicle list và group controls
+  if (vehicleList) vehicleList.style.display = 'none';
+  if (groupControls) groupControls.style.display = 'none';
+  
+  // Hiển thị user content
+  userContent.style.display = 'block';
+  
+  // Fetch user content based on role
+  fetch('get_user_content.php')
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        userContent.innerHTML = data.content;
+        // Cập nhật tiêu đề trang
+        updatePageTitle();
+      } else {
+        userContent.innerHTML = '<p class="error-message">Không thể tải nội dung người dùng</p>';
+      }
+    })
+    .catch(error => {
+      console.error('Error loading user content:', error);
+      userContent.innerHTML = '<p class="error-message">Có lỗi xảy ra khi tải nội dung</p>';
+    });
+}
+
 // Khởi tạo khi tải trang
 window.onload = () => {
   // Đọc tham số filter từ URL để đặt bộ lọc ban đầu
   const urlParams = new URLSearchParams(window.location.search);
   const filterFromUrl = urlParams.get('filter');
   currentFilter = filterFromUrl || 'all';
+  
+  // Xử lý filter user ngay khi load trang
+  if (filterFromUrl === 'user') {
+    loadUserContent();
+    return;
+  }
+  
   // Hiển thị điều khiển Khách đoàn nếu cần
   const groupControls = document.getElementById('group-controls');
   if (groupControls) {
     groupControls.style.display = (currentFilter === 'group') ? 'flex' : 'none';
   }
+  
   loadVehicleData();
   updateTimers();
   periodicRefresh();
@@ -791,15 +849,15 @@ window.onload = () => {
   // Cập nhật tiêu đề trang lần đầu
   updatePageTitle();
 
-  // Đóng menu khi click ra ngoài menu trên mobile
-  document.addEventListener('click', function(e) {
-    const nav = document.getElementById('nav-menu');
-    const toggle = document.getElementById('menu-toggle');
-    if (!nav || !toggle) return;
-    if (nav.classList.contains('open')) {
-      if (!nav.contains(e.target) && e.target !== toggle) {
-        nav.classList.remove('open');
+      // Đóng menu khi click ra ngoài menu trên mobile
+    document.addEventListener('click', function(e) {
+      const nav = document.getElementById('nav-menu');
+      const toggle = document.getElementById('menu-toggle');
+      if (!nav || !toggle) return;
+      if (nav.classList.contains('open')) {
+        if (!nav.contains(e.target) && e.target !== toggle) {
+          nav.classList.remove('open');
+        }
       }
-    }
-  });
+    });
 };

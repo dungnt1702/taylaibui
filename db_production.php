@@ -1,6 +1,5 @@
 <?php
-// Cấu hình database cho localhost
-$mysqli = new mysqli('localhost', 'root', '', 'tay99672_qlss');
+$mysqli = new mysqli('localhost', 'tay99672_qlss', '5nW1$m6u3', 'tay99672_qlss');
 if ($mysqli->connect_error) {
   die('Kết nối CSDL thất bại: ' . $mysqli->connect_error);
 }

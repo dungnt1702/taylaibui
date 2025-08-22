@@ -19,10 +19,8 @@ if (!$requiresLogin && isset($_SESSION['greet']) && $_SESSION['greet'] === true)
 }
 // Determine filter from query
 $filter = $_GET['filter'] ?? 'all';
-// Determine if the current user is an admin. This will be used to decide which
-// user page link to output in the header.
+// Determine if the current user is an admin. This will be used for future functionality.
 $isAdminUser = isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1;
-$userPageLink = $isAdminUser ? 'user_manager.php' : 'user_profile.php';
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -44,8 +42,8 @@ $userPageLink = $isAdminUser ? 'user_manager.php' : 'user_profile.php';
       <img src="logo.png" alt="TLB" class="header-logo" />
       <!-- Site name: displayed on one line and scaled via CSS on mobile -->
       <h1>TAY LÁI BỤI SÓC SƠN</h1>
-      <!-- User icon; clicking opens either user profile or manager page depending on role -->
-      <a href="<?= $userPageLink ?>" class="user-info">
+      <!-- User icon; clicking opens user management/profile -->
+      <a href="?filter=user" class="user-info">
         <!-- Use a playful icon of a boy and girl smiling instead of showing the username -->
         <span class="user-icon">😁</span>
       </a>
@@ -67,6 +65,12 @@ $userPageLink = $isAdminUser ? 'user_manager.php' : 'user_profile.php';
   <div id="vehicle-list">
     <!-- Vehicle cards will be rendered dynamically by script.js -->
   </div>
+  
+  <!-- User content area -->
+  <div id="user-content" class="user-content" style="display: none;">
+    <!-- User content will be loaded here -->
+  </div>
+  
   <!-- Controls for group (khách đoàn) actions -->
   <div id="group-controls" class="group-controls">
     <!-- Dòng chọn thời gian -->
@@ -103,6 +107,99 @@ $userPageLink = $isAdminUser ? 'user_manager.php' : 'user_profile.php';
   <?php if (!$requiresLogin): ?>
     <script src="script.js"></script>
   <?php endif; ?>
+  
+  <script>
+    // Login popup functionality
+    function checkPhone() {
+      const phoneInput = document.getElementById('phone');
+      const phone = phoneInput.value.trim();
+      const nameDisplay = document.getElementById('name-display');
+      const passwordGroup = document.getElementById('password-group');
+      const submitGroup = document.getElementById('submit-group');
+      
+      // Reset display
+      nameDisplay.textContent = '';
+      nameDisplay.className = 'name-display';
+      passwordGroup.style.display = 'none';
+      submitGroup.style.display = 'none';
+      
+      if (phone === '' || phone.length < 10) {
+        return;
+      }
+      
+      // Only fetch when phone has exactly 10 digits
+      if (phone.length === 10) {
+        fetch('check_user.php?phone=' + encodeURIComponent(phone))
+          .then(res => {
+            if (!res.ok) {
+              return { exists: false };
+            }
+            return res.json();
+          })
+          .then(data => {
+            if (data && data.exists) {
+              // Show greeting with bold, green name
+              nameDisplay.innerHTML = 'Xin chào <strong style="color:#4caf50">' + data.name + '</strong>';
+              nameDisplay.className = 'name-display success';
+              passwordGroup.style.display = 'block';
+              submitGroup.style.display = 'block';
+            } else {
+              nameDisplay.textContent = 'Người dùng không tồ tại';
+              nameDisplay.className = 'name-display error';
+            }
+          })
+          .catch(() => {
+            nameDisplay.textContent = '';
+            nameDisplay.className = 'name-display';
+          });
+      }
+    }
+    
+    function togglePasswordVisibility() {
+      const pwdInput = document.getElementById('password');
+      if (pwdInput.type === 'password') {
+        pwdInput.type = 'text';
+      } else {
+        pwdInput.type = 'password';
+      }
+    }
+    
+    // Handle login form submission
+    document.addEventListener('DOMContentLoaded', function() {
+      const loginForm = document.getElementById('login-form');
+      if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          
+          const formData = new FormData(loginForm);
+          const errorDiv = document.getElementById('login-error');
+          
+          // Hide previous error
+          errorDiv.style.display = 'none';
+          
+          fetch('api_login.php', {
+            method: 'POST',
+            body: formData
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              // Login successful - reload page to show main content
+              window.location.reload();
+            } else {
+              // Show error message
+              errorDiv.textContent = data.message;
+              errorDiv.style.display = 'block';
+            }
+          })
+          .catch(error => {
+            errorDiv.textContent = 'Có lỗi xảy ra. Vui lòng thử lại.';
+            errorDiv.style.display = 'block';
+          });
+        });
+      }
+    });
+  </script>
   <?php
     // Output greeting script if available and the user is logged in
     if ($greetingScript) echo $greetingScript;
@@ -111,9 +208,25 @@ $userPageLink = $isAdminUser ? 'user_manager.php' : 'user_profile.php';
     <!-- Login modal shown when user is not authenticated -->
     <div class="login-modal" id="login-modal" style="display:flex;">
       <div class="login-modal-content">
-        <h2>Yêu cầu đăng nhập</h2>
-        <p>Bạn cần đăng nhập trước khi sử dụng hệ thống.</p>
-        <a href="login.php" class="login-button">Đăng nhập</a>
+        <h2>Đăng nhập hệ thống</h2>
+        <form id="login-form" class="login-form">
+          <div class="form-group">
+            <label for="phone">Số điện thoại:</label>
+            <input type="text" id="phone" name="phone" oninput="checkPhone()" autocomplete="off" required />
+            <div id="name-display" class="name-display"></div>
+          </div>
+          <div class="form-group" id="password-group" style="display:none;">
+            <label for="password">Mật mã:</label>
+            <div class="password-wrapper">
+              <input type="password" id="password" name="password" autocomplete="off" required />
+              <span class="toggle-password" onclick="togglePasswordVisibility()">👁</span>
+            </div>
+          </div>
+          <div class="form-group" id="submit-group" style="display:none;">
+            <button type="submit" class="login-btn">Đăng nhập</button>
+          </div>
+          <div id="login-error" class="error-message" style="display:none;"></div>
+        </form>
       </div>
     </div>
   <?php endif; ?>
