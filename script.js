@@ -319,19 +319,74 @@ function renderVehicles() {
     const data = item.data;
     const secondsLeft = item.secondsLeft;
     const onRoute = item.onRoute;
-    // For group mode, render simple list
+    // For group mode, render table format
     if (currentFilter === 'group') {
-      const div = document.createElement('div');
-      div.className = 'vehicle group-mode';
+      // Create table header if not exists
+      if (!document.querySelector('.group-table')) {
+        const tableHeader = document.createElement('div');
+        tableHeader.className = 'group-table-header';
+        tableHeader.innerHTML = `
+          <div class="group-table">
+            <div class="group-table-row header">
+              <div class="group-table-cell checkbox-header">
+                <input type="checkbox" id="select-all" onchange="toggleSelectAll()">
+              </div>
+              <div class="group-table-cell">Tên xe</div>
+              <div class="group-table-cell">Trạng thái</div>
+            </div>
+          </div>
+        `;
+        container.appendChild(tableHeader);
+      }
+      
+      const tableRow = document.createElement('div');
+      tableRow.className = 'group-table-row';
       const selected = groupSelection.includes(i);
-      if (selected) div.classList.add('selected');
-      const statusText = (data.repairNotes && data.repairNotes.trim()) ? data.repairNotes : '';
-      div.innerHTML = `
-        <input type="checkbox" class="select-checkbox" ${selected ? 'checked' : ''} onchange="toggleSelection(${i})">
-        <h3>Xe ${i}</h3>
-        <div class="status" id="status-${i}">${statusText}</div>
+      if (selected) tableRow.classList.add('selected');
+      
+      // Determine vehicle status
+      let statusText = '';
+      let statusClass = '';
+      
+      if (data.active === false) {
+        statusText = 'Trong xưởng';
+        statusClass = 'status-workshop';
+      } else if (data.endAt) {
+        const secondsLeft = Math.floor((data.endAt - Date.now()) / 1000);
+        if (data.paused) {
+          statusText = 'Tạm hoãn';
+          statusClass = 'status-paused';
+        } else if (secondsLeft <= 0) {
+          statusText = 'Hết giờ';
+          statusClass = 'status-expired';
+        } else if (secondsLeft <= 60) {
+          statusText = 'Sắp hết giờ';
+          statusClass = 'status-warning';
+        } else {
+          statusText = 'Đang chạy';
+          statusClass = 'status-running';
+        }
+      } else if (data.repairNotes && data.repairNotes.trim()) {
+        statusText = data.repairNotes;
+        statusClass = 'status-notes';
+      } else {
+        statusText = 'Sẵn sàng';
+        statusClass = 'status-ready';
+      }
+      
+      tableRow.innerHTML = `
+        <div class="group-table-cell checkbox-cell">
+          <input type="checkbox" class="select-checkbox" ${selected ? 'checked' : ''} onchange="toggleSelection(${i})">
+        </div>
+        <div class="group-table-cell vehicle-name">Xe ${i}</div>
+        <div class="group-table-cell vehicle-status ${statusClass}">${statusText}</div>
       `;
-      container.appendChild(div);
+      
+      // Find the table and append row
+      const table = document.querySelector('.group-table');
+      if (table) {
+        table.appendChild(tableRow);
+      }
       return;
     }
     // Create card for normal mode
@@ -446,6 +501,44 @@ function renderVehicles() {
     p.textContent = '--Không có xe nào--';
     container.appendChild(p);
   }
+}
+
+// Toggle select all vehicles in group mode
+function toggleSelectAll() {
+  const selectAllCheckbox = document.getElementById('select-all');
+  const checkboxes = document.querySelectorAll('.select-checkbox');
+  
+  if (selectAllCheckbox.checked) {
+    // Select all vehicles
+    checkboxes.forEach(checkbox => {
+      const vehicleId = parseInt(checkbox.getAttribute('onchange').match(/\d+/)[0]);
+      if (!groupSelection.includes(vehicleId)) {
+        groupSelection.push(vehicleId);
+      }
+      checkbox.checked = true;
+    });
+  } else {
+    // Deselect all vehicles
+    checkboxes.forEach(checkbox => {
+      const vehicleId = parseInt(checkbox.getAttribute('onchange').match(/\d+/)[0]);
+      const idx = groupSelection.indexOf(vehicleId);
+      if (idx > -1) {
+        groupSelection.splice(idx, 1);
+      }
+      checkbox.checked = false;
+    });
+  }
+  
+  // Update visual selection
+  document.querySelectorAll('.group-table-row').forEach(row => {
+    if (row.classList.contains('header')) return;
+    const checkbox = row.querySelector('.select-checkbox');
+    if (checkbox.checked) {
+      row.classList.add('selected');
+    } else {
+      row.classList.remove('selected');
+    }
+  });
 }
 
 // Bật/tắt xe
