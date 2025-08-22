@@ -87,20 +87,20 @@ function includeDatabase() {
                     error_log("Included: db_production.php");
                 }
             } else {
-                // Fallback to local database if production file doesn't exist
-                require_once __DIR__ . '/db.php';
+                // Fallback to development database if production file doesn't exist
+                require_once __DIR__ . '/db_development.php';
                 if (defined('DEBUG_MODE') && DEBUG_MODE) {
-                    error_log("Fallback: db.php (production file not found)");
+                    error_log("Fallback: db_development.php (production file not found)");
                 }
             }
             break;
             
         case 'development':
         default:
-            if (file_exists(__DIR__ . '/db.php')) {
-                require_once __DIR__ . '/db.php';
+            if (file_exists(__DIR__ . '/db_development.php')) {
+                require_once __DIR__ . '/db_development.php';
                 if (defined('DEBUG_MODE') && DEBUG_MODE) {
-                    error_log("Included: db.php");
+                    error_log("Included: db_development.php");
                 }
             } else {
                 die("Database configuration file not found!");
@@ -113,14 +113,15 @@ function includeDatabase() {
 define('DEBUG_MODE', true);
 
 // Auto-include database configuration
-includeDatabase();
+$db_result = includeDatabase();
 
 // Verify database connection
-if (!isset($mysqli) || $mysqli->connect_error) {
+if ($db_result === false || !isset($mysqli) || $mysqli->connect_error) {
     if (DEBUG_MODE) {
         error_log("Database connection failed: " . ($mysqli->connect_error ?? 'mysqli not set'));
     }
-    die("Database connection failed! Please check your configuration.");
+    // Không die() ngay lập tức, để các trang có thể xử lý lỗi riêng
+    error_log("Database connection failed! Please check your configuration.");
 }
 
 // Optional: Set environment-specific constants

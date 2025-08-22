@@ -1,5 +1,5 @@
 <?php
-require_once 'db.php';
+require_once 'config.php';
 session_start();
 // Determine if the user is logged in. If not, we'll show a login modal instead of redirecting.
 $requiresLogin = !(isset($_SESSION['user_id']) || isset($_COOKIE['remember_login']));

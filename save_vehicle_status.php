@@ -1,5 +1,5 @@
 <?php
-include 'db.php';
+require_once 'config.php';
 session_start();
 // Deny access if user is not logged in (require either user_id or user_name)
 if (!isset($_SESSION['user_id']) && !isset($_COOKIE['remember_login'])) {

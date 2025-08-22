@@ -1,5 +1,5 @@
 <?php
-require_once 'db.php';
+require_once 'config.php';
 header('Content-Type: application/json');
 
 // Simple API to check if a phone number exists in users table

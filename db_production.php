@@ -9,20 +9,45 @@ $db_pass = '5nW1$m6u3';
 $db_name = 'tay99672_qlss';
 
 // Create connection
-$mysqli = new mysqli($db_host, $db_user, $db_pass, $db_name);
-
-// Check connection
-if ($mysqli->connect_error) {
-    die("Connection failed: " . $mysqli->connect_error);
+try {
+    global $mysqli;
+    $mysqli = new mysqli($db_host, $db_user, $db_pass, $db_name);
+    
+    // Check connection
+    if ($mysqli->connect_error) {
+        error_log("Production database connection failed: " . $mysqli->connect_error);
+        return false;
+    }
+    
+    // Set charset to utf8
+    if (!$mysqli->set_charset("utf8")) {
+        error_log("Failed to set charset: " . $mysqli->error);
+    }
+    
+    // Set timezone
+    if (!$mysqli->query("SET time_zone = '+07:00'")) {
+        error_log("Failed to set timezone: " . $mysqli->error);
+    }
+    
+    // Log successful connection
+    error_log("Production database connection successful - Host: " . $mysqli->host_info);
+    
+} catch (Exception $e) {
+    error_log("Exception creating production mysqli: " . $e->getMessage());
+    return false;
 }
 
-// Set charset to utf8
-$mysqli->set_charset("utf8");
+// Verify $mysqli is set
+if (!isset($mysqli)) {
+    error_log("$mysqli variable is not set after creation");
+    return false;
+}
 
-// Set timezone
-$mysqli->query("SET time_zone = '+07:00'");
+if (!($mysqli instanceof mysqli)) {
+    error_log("$mysqli is not a mysqli object");
+    return false;
+}
 
-// Optional: Enable error reporting for production debugging
-// error_reporting(E_ALL);
-// ini_set('display_errors', 1);
+// Return true if everything is successful
+return true;
 ?>

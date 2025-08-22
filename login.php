@@ -1,5 +1,5 @@
 <?php
-require_once 'db.php';
+require_once 'config.php';
 session_start();
 
 // If user already logged in via session, redirect to index
