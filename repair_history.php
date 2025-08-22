@@ -73,7 +73,7 @@ while ($row = $result->fetch_assoc()) {
         <table class="repair-table">
         <thead>
             <tr>
-                <th>ID</th>
+                <th>Thứ tự</th>
                 <th>Xe</th>
                 <th>Loại sửa chữa</th>
                 <th>Mô tả</th>
@@ -95,35 +95,38 @@ while ($row = $result->fetch_assoc()) {
                     </td>
                 </tr>
             <?php else: ?>
-                <?php foreach ($repairs as $repair): ?>
+                <?php 
+                $counter = 1;
+                foreach ($repairs as $repair): 
+                ?>
                     <tr>
-                        <td><?= htmlspecialchars($repair['id']) ?></td>
-                        <td><strong>Xe <?= htmlspecialchars($repair['vehicle_id']) ?></strong></td>
-                        <td>
+                        <td data-label="Thứ tự:"><?= $counter ?></td>
+                        <td data-label="Xe:"><strong>Xe <?= htmlspecialchars($repair['vehicle_id']) ?></strong></td>
+                        <td data-label="Loại sửa chữa:">
                             <span class="repair-type"><?= htmlspecialchars($repair['repair_type']) ?></span>
                         </td>
-                        <td>
+                        <td data-label="Mô tả:">
                             <div class="repair-description" title="<?= htmlspecialchars($repair['description']) ?>">
                                 <?= htmlspecialchars(substr($repair['description'], 0, 50)) ?>
                                 <?= strlen($repair['description']) > 50 ? '...' : '' ?>
                             </div>
                         </td>
-                        <td>
+                        <td data-label="Chi phí:">
                             <?php if ($repair['cost'] > 0): ?>
                                 <span class="repair-cost"><?= number_format($repair['cost'], 0, ',', '.') ?> VNĐ</span>
                             <?php else: ?>
                                 <span class="no-data">-</span>
                             <?php endif; ?>
                         </td>
-                        <td><?= date('d/m/Y', strtotime($repair['repair_date'])) ?></td>
-                        <td>
+                        <td data-label="Ngày sửa:"><?= date('d/m/Y', strtotime($repair['repair_date'])) ?></td>
+                        <td data-label="Ngày hoàn thành:">
                             <?php if ($repair['completed_date']): ?>
                                 <?= date('d/m/Y', strtotime($repair['completed_date'])) ?>
                             <?php else: ?>
                                 <span class="no-data">-</span>
                             <?php endif; ?>
                         </td>
-                        <td>
+                        <td data-label="Trạng thái:">
                             <?php
                             $statusClass = 'status-' . $repair['status'];
                             $statusText = [
@@ -135,16 +138,16 @@ while ($row = $result->fetch_assoc()) {
                             ?>
                             <span class="status-badge <?= $statusClass ?>"><?= $statusText ?></span>
                         </td>
-                        <td>
+                        <td data-label="Thợ sửa:">
                             <?php if ($repair['technician']): ?>
                                 <span class="technician"><?= htmlspecialchars($repair['technician']) ?></span>
                             <?php else: ?>
                                 <span class="no-data">-</span>
                             <?php endif; ?>
                         </td>
-                        <td><?= htmlspecialchars($repair['created_by'] ?? 'N/A') ?></td>
-                        <td><?= date('d/m/Y H:i', strtotime($repair['created_at'])) ?></td>
-                        <td>
+                        <td data-label="Người tạo:"><?= htmlspecialchars($repair['created_by'] ?? 'N/A') ?></td>
+                        <td data-label="Ngày tạo:"><?= date('d/m/Y H:i', strtotime($repair['created_at'])) ?></td>
+                        <td data-label="Thao tác:">
                             <button class="edit-btn" onclick="editRepair(<?= $repair['id'] ?>)">
                                 ✏️ Sửa
                             </button>
@@ -153,7 +156,10 @@ while ($row = $result->fetch_assoc()) {
                             </button>
                         </td>
                     </tr>
-                <?php endforeach; ?>
+                <?php 
+                $counter++;
+                endforeach; 
+                ?>
             <?php endif; ?>
         </tbody>
         </table>
@@ -369,7 +375,8 @@ while ($row = $result->fetch_assoc()) {
             if (data.success) {
                 showSuccessModal('Đã xóa sửa chữa thành công!');
                 closeDeleteConfirmModal();
-                location.reload(); // Reload trang để cập nhật
+                // Thay vì reload trang, chỉ cập nhật dữ liệu
+                loadRepairData();
             } else {
                 showErrorModal('Lỗi: ' + data.message);
             }
@@ -476,36 +483,43 @@ while ($row = $result->fetch_assoc()) {
             const row = tbody.insertRow();
             row.className = 'no-data-row';
             const cell = row.insertCell();
-            cell.colSpan = 12; /* 12 cột: ID, Xe, Loại, Mô tả, Chi phí, Ngày sửa, Trạng thái, Thợ, Người tạo, Ngày tạo, Thao tác */
+            cell.colSpan = 12; /* 12 cột: Thứ tự, Xe, Loại, Mô tả, Chi phí, Ngày sửa, Ngày hoàn thành, Trạng thái, Thợ sửa, Người tạo, Ngày tạo, Thao tác */
             cell.innerHTML = '<div class="no-data">Không có dữ liệu sửa chữa</div>';
             return;
         }
         
-        pageData.forEach(repair => {
+        pageData.forEach((repair, index) => {
             const row = tbody.insertRow();
+            const counter = startIndex + index + 1;
             row.innerHTML = `
-                <td>${repair.id}</td>
-                <td><strong>Xe ${repair.vehicle_id}</strong></td>
-                <td>
+                <td data-label="Thứ tự:">${counter}</td>
+                <td data-label="Xe:"><strong>Xe ${repair.vehicle_id}</strong></td>
+                <td data-label="Loại sửa chữa:">
                     <span class="repair-type">${repair.repair_type}</span>
                 </td>
-                <td class="repair-description" title="${repair.description || ''}">
-                    ${repair.description ? (repair.description.length > 50 ? repair.description.substring(0, 50) + '...' : repair.description) : '-'}
+                <td data-label="Mô tả:">
+                    <div class="repair-description" title="${repair.description || ''}">
+                        ${repair.description ? (repair.description.length > 50 ? repair.description.substring(0, 50) + '...' : repair.description) : '-'}
+                    </div>
                 </td>
-                <td class="repair-cost">
+                <td data-label="Chi phí:">
                     ${repair.cost > 0 ? repair.cost.toLocaleString('vi-VN') + ' VNĐ' : '-'}
                 </td>
-                <td>${repair.repair_date}</td>
-                <td>${repair.completed_date || '-'}</td>
-                <td>
+                <td data-label="Ngày sửa:">${repair.repair_date}</td>
+                <td data-label="Ngày hoàn thành:">${repair.completed_date || '-'}</td>
+                <td data-label="Trạng thái:">
                     <span class="status-badge status-${repair.status}">${getStatusText(repair.status)}</span>
                 </td>
-                <td class="technician">${repair.technician || '-'}</td>
-                <td>${repair.created_by || 'N/A'}</td>
-                <td>${repair.created_at}</td>
-                <td>
-                    <button class="edit-btn" onclick="editRepair(${repair.id})">✏️ Sửa</button>
-                    <button class="delete-btn" onclick="deleteRepair(${repair.id})">🗑️ Xóa</button>
+                <td data-label="Thợ sửa:">${repair.technician || '-'}</td>
+                <td data-label="Người tạo:">${repair.created_by || 'N/A'}</td>
+                <td data-label="Ngày tạo:">${repair.created_at}</td>
+                <td data-label="Thao tác:">
+                    <button class="edit-btn" onclick="editRepair(${repair.id})">
+                        ✏️ Sửa
+                    </button>
+                    <button class="delete-btn" onclick="deleteRepair(${repair.id})">
+                        🗑️ Xóa
+                    </button>
                 </td>
             `;
         });
@@ -543,8 +557,11 @@ while ($row = $result->fetch_assoc()) {
         // Set page size mặc định
         document.getElementById('page-size').value = '10';
         
-        // Load dữ liệu ban đầu
-        loadRepairData();
+        // Chỉ load dữ liệu nếu không có dữ liệu PHP
+        const tbody = document.querySelector('.repair-table tbody');
+        if (tbody && tbody.children.length <= 1) {
+            loadRepairData();
+        }
     });
     
     function exportRepairHistory() {
@@ -572,7 +589,8 @@ while ($row = $result->fetch_assoc()) {
                 const message = repairId ? 'Đã cập nhật sửa chữa thành công!' : 'Đã thêm sửa chữa mới thành công!';
                 showSuccessModal(message);
                 closeRepairModal();
-                location.reload(); // Reload trang để cập nhật
+                // Thay vì reload trang, chỉ cập nhật dữ liệu
+                loadRepairData();
             } else {
                 showErrorModal('Lỗi: ' + data.message);
             }

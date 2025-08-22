@@ -604,19 +604,23 @@ header .header-top .menu-toggle {
 /* Styles for repair table (inactive vehicles) */
 .repair-table-container {
   width: 100%;
+  max-width: 100%;
   overflow-x: auto;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
 }
 
 .repair-table {
   width: 100%;
-  min-width: 800px; /* Đảm bảo bảng có độ rộng tối thiểu */
+  min-width: auto; /* Bỏ min-width cố định để bảng vừa container */
+  max-width: 100%; /* Đảm bảo bảng không vượt quá container */
   border-collapse: collapse;
   margin: 0;
   background: #fff;
   border-radius: 8px;
   overflow: hidden;
+  box-sizing: border-box; /* Tính toán width bao gồm padding và border */
 }
 .repair-table th,
 .repair-table td {
@@ -711,17 +715,90 @@ body {
   .repair-table-container {
     margin: 10px 0;
     border-radius: 0;
+    overflow-x: visible; /* Không cho phép scroll ngang */
   }
   
   .repair-table {
-    min-width: 600px;
+    min-width: auto; /* Bỏ min-width cố định */
+    width: 100%; /* Chiếm toàn bộ chiều rộng */
     font-size: 14px;
+    display: block; /* Chuyển thành block layout */
   }
   
-  .repair-table th,
-  .repair-table td {
-    padding: 10px 8px;
+  .repair-table thead {
+    display: none; /* Ẩn header trên mobile */
   }
+  
+  .repair-table tbody {
+    display: block;
+  }
+  
+  .repair-table tr {
+    display: block;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 16px;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .repair-table td {
+    display: block;
+    border: none;
+    padding: 12px 0;
+    text-align: left;
+    position: relative;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .repair-table td:before {
+    content: attr(data-label) " ";
+    font-weight: bold;
+    display: inline;
+    color: #666;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .repair-table td:first-child {
+    font-weight: bold;
+    font-size: 16px;
+    color: #333;
+    border-bottom: 2px solid #ff9800;
+    padding-bottom: 12px;
+    margin-bottom: 8px;
+  }
+  
+  .repair-table td:last-child {
+    text-align: center;
+    padding-top: 12px;
+    border-top: 1px solid #eee;
+  }
+  
+  /* Cải thiện hiển thị cho các cell đặc biệt */
+  .repair-table td[data-label="Mô tả:"] {
+    line-height: 1.5;
+  }
+  
+  .repair-table td[data-label="Thao tác:"] {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .repair-table td[data-label="Thao tác:"] button {
+    min-width: 80px;
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  
+
 }
 /* ------------------------------------------------------------------ */
 /* Các override màu sắc nút theo yêu cầu người dùng.
@@ -1410,12 +1487,14 @@ body {
   
   .repair-table {
     width: 100%;
-    min-width: 800px; /* Đảm bảo bảng có độ rộng tối thiểu */
+    min-width: auto; /* Bỏ min-width cố định để bảng vừa container */
+    max-width: 100%; /* Đảm bảo bảng không vượt quá container */
     border-collapse: collapse;
     margin: 0; /* Bỏ margin vì đã có table-container */
     background: white;
     border-radius: 8px;
     overflow: hidden;
+    box-sizing: border-box;
   }
   
   .repair-table th,
@@ -1623,8 +1702,12 @@ body {
 
 /* Repair history table styles */
 .repair-history-table-container {
-  max-height: 500px;
+  height: 600px; /* Chiều cao cố định */
+  max-height: 600px;
   overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .repair-history-table-container h3 {
@@ -1633,11 +1716,13 @@ body {
   text-align: center;
   border-bottom: 2px solid #f0f0f0;
   padding-bottom: 10px;
+  flex-shrink: 0; /* Không bị co lại */
 }
 
 .repair-history-actions {
   margin-bottom: 20px;
   text-align: center;
+  flex-shrink: 0; /* Không bị co lại */
 }
 
 .repair-history-actions {
@@ -1694,6 +1779,8 @@ body {
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  flex: 1; /* Chiếm phần còn lại của container */
+  overflow-y: auto; /* Cho phép scroll bảng */
 }
 
 .repair-history-table th,
@@ -1718,6 +1805,100 @@ body {
   background: #ff9800;
   color: white;
   border: none;
+}
+
+/* Mobile responsive cho repair history table */
+@media (max-width: 768px) {
+  .repair-history-table-container {
+    height: 500px; /* Chiều cao cố định trên mobile */
+    max-height: 500px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .repair-history-table {
+    display: block;
+    width: 100%;
+    min-width: auto;
+    max-width: 100%;
+    box-shadow: none;
+    border-radius: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+    flex: 1; /* Chiếm phần còn lại của container */
+    overflow-y: auto; /* Cho phép scroll bảng */
+  }
+  
+  .repair-history-table thead {
+    display: none; /* Ẩn header trên mobile */
+  }
+  
+  .repair-history-table tbody {
+    display: block;
+  }
+  
+  .repair-history-table tr {
+    display: block;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .repair-history-table td {
+    display: block;
+    border: none;
+    padding: 8px 0;
+    text-align: left;
+    position: relative;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .repair-history-table td:before {
+    content: attr(data-label);
+    font-weight: bold;
+    display: inline-block;
+    width: 120px;
+    color: #666;
+    margin-right: 10px;
+    flex-shrink: 0;
+    box-sizing: border-box;
+  }
+  
+  .repair-history-table td:first-child {
+    font-weight: bold;
+    font-size: 16px;
+    color: #333;
+    border-bottom: 2px solid #ff9800;
+    padding-bottom: 12px;
+    margin-bottom: 8px;
+  }
+  
+  .repair-history-table td:last-child {
+    text-align: center;
+    padding-top: 12px;
+    border-top: 1px solid #eee;
+  }
+  
+  .repair-history-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .repair-history-actions button {
+    width: 100%;
+    max-width: 300px;
+  }
+}
   padding: 6px 12px;
   border-radius: 4px;
   cursor: pointer;
@@ -1733,6 +1914,11 @@ body {
 .no-repair-history {
   text-align: center;
   padding: 40px 20px;
+  flex: 1; /* Chiếm phần còn lại của container */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .no-repair-history h3 {
@@ -1941,7 +2127,10 @@ body {
     
     .repair-history-table {
       font-size: 12px;
-      min-width: 600px;
+      min-width: auto;
+      max-width: 100%;
+      width: 100%;
+      box-sizing: border-box;
     }
     
     .repair-history-table th,
@@ -1956,9 +2145,11 @@ body {
     
     .repair-table {
       font-size: 12px;
-      min-width: 600px; /* Giảm độ rộng tối thiểu trên mobile */
+      min-width: auto; /* Bỏ min-width cố định để bảng vừa container */
+      max-width: 100%; /* Đảm bảo bảng không vượt quá container */
       width: 100%;
       margin: 0;
+      box-sizing: border-box;
     }
     
     .repair-table th,
@@ -2157,11 +2348,17 @@ body {
   color: #fff !important;
 }
 
-/* When a vehicle card is collapsed (hidden details), reduce header spacing */
+/* When a vehicle card is collapsed (hidden details), reduce header spacing and overall height */
 .vehicle.collapsed h3 {
   border-bottom: none;
   margin-bottom: 0;
   padding-bottom: 0;
+}
+
+.vehicle.collapsed {
+  padding: 8px 12px;
+  min-height: auto;
+  height: auto;
 }
 .repair-table td:nth-child(2) {
   white-space: pre-wrap; /* Preserve newlines for repair notes */
@@ -2214,16 +2411,26 @@ body {
 /* Arrow indicators for collapsing/expanding vehicle details */
 .arrow {
   display: inline-block;
-  margin-right: 6px;
+  margin-right: 8px;
   cursor: pointer;
+  font-weight: bold;
+  color: #666;
+  transition: transform 0.2s ease;
+  font-size: 16px;
 }
 .arrow.collapsed::before {
-  content: '\25BC'; /* downwards arrow when collapsed */
-  font-size: 16px;
+  content: '⌄'; /* modern chevron down when collapsed */
+  font-size: 18px;
+  color: #888;
 }
 .arrow.expanded::before {
-  content: '\25B2'; /* upwards arrow when expanded */
-  font-size: 16px;
+  content: '⌃'; /* modern chevron up when expanded */
+  font-size: 18px;
+  color: #666;
+}
+.arrow:hover {
+  color: #ff9800;
+  transform: scale(1.1);
 }
 
 /* Two-column layout for vehicles on small screens */

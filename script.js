@@ -141,6 +141,7 @@ function setFilter(filter) {
   // Xử lý filter user
   if (filter === 'user') {
     // loadUserContent() sẽ được gọi từ setFilter
+    updatePageTitle(); // Cập nhật tiêu đề
     return;
   }
   
@@ -150,6 +151,7 @@ function setFilter(filter) {
     const vehicleList = document.getElementById('vehicle-list');
     if (maintenanceContent) maintenanceContent.style.display = 'block';
     if (vehicleList) vehicleList.style.display = 'none';
+    updatePageTitle(); // Cập nhật tiêu đề
     return;
   }
   
@@ -159,6 +161,7 @@ function setFilter(filter) {
     const vehicleList = document.getElementById('vehicle-list');
     if (repairContent) repairContent.style.display = 'block';
     if (vehicleList) vehicleList.style.display = 'none';
+    updatePageTitle(); // Cập nhật tiêu đề
     return;
   }
   
@@ -184,8 +187,11 @@ function setFilter(filter) {
   if (vehicleList) vehicleList.style.display = 'block';
   
   // Chỉ render vehicles cho các filter thông thường
-  renderVehicles();
-  updatePageTitle();
+  if (filter !== 'maintenance' && filter !== 'repair' && filter !== 'user') {
+    renderVehicles();
+    updatePageTitle(); // Chỉ cập nhật tiêu đề cho filter thông thường
+  }
+  // Không cần gọi updatePageTitle() ở đây vì đã gọi trong các filter đặc biệt
 }
 
 // Render danh sách xe dựa trên dữ liệu và bộ lọc hiện tại
@@ -263,15 +269,26 @@ function renderVehicles() {
       const tr = document.createElement('tr');
       const tdId = document.createElement('td');
       tdId.textContent = `Xe ${i}`;
+      tdId.setAttribute('data-label', 'Số xe:');
       const tdStatus = document.createElement('td');
       tdStatus.textContent = data.repairNotes || '';
+      tdStatus.setAttribute('data-label', 'Ghi chú hỏng hóc:');
       const tdLastRepair = document.createElement('td');
-      tdLastRepair.textContent = data.last_repair_status || 'Chưa có';
+      // Chuyển đổi trạng thái sửa chữa thành text tiếng Việt
+      const repairStatusText = {
+        'pending': 'Chờ xử lý',
+        'in_progress': 'Đang sửa',
+        'completed': 'Hoàn thành',
+        'cancelled': 'Đã hủy'
+      }[data.last_repair_status] || data.last_repair_status || 'Chưa có';
+      tdLastRepair.textContent = repairStatusText;
+      tdLastRepair.setAttribute('data-label', 'Lần sửa chữa cuối:');
       const tdAction = document.createElement('td');
       tdAction.innerHTML = `
         <button class="edit-notes-btn" onclick="showNotesEditor(${i})">✏️</button>
         <button class="repair-history-btn" onclick="showRepairHistory(${i})" title="Xem lịch sử sửa chữa">🔧</button>
       `;
+      tdAction.setAttribute('data-label', 'Hành động:');
       tr.appendChild(tdId);
       tr.appendChild(tdStatus);
       tr.appendChild(tdLastRepair);
@@ -422,6 +439,7 @@ function renderVehicles() {
     // Create card for normal mode
     const div = document.createElement('div');
     div.className = 'vehicle';
+    div.setAttribute('data-vehicle-id', i); // Thêm data attribute để dễ tìm
     if (data.active === false) div.classList.add('inactive');
     if (!onRoute) {
       if (secondsLeft <= 60 && secondsLeft > 0) div.classList.add('warning');
@@ -448,12 +466,10 @@ function renderVehicles() {
     let controlsHtml = '';
     if (!onRoute) {
       if (!data.endAt) {
-        // Xe chưa chạy: hiển thị hai nút bắt đầu và nút về xưởng/xuất xưởng
+        // Xe chưa chạy: hiển thị 3 nút trên cùng 1 hàng
         controlsHtml += '<div class="controls-row">' +
           `<button onclick="startTimer(${i}, 45)" class="btn-45" id="btn45-${i}">Chạy 45p</button>` +
           `<button onclick="startTimer(${i}, 30)" class="btn-30" id="btn30-${i}">Chạy 30p</button>` +
-          '</div>';
-        controlsHtml += '<div class="controls-row">' +
           // Nếu là xe trong xưởng (inactive) -> Xuất xưởng; ngược lại -> Về xưởng
           (data.active === false ?
             `<button onclick="toggleVehicle(${i})" class="toggle-btn">Xuất xưởng</button>` :
@@ -828,7 +844,29 @@ function setRouteGroup(route) {
 // Toggle collapse state for a vehicle (used on mobile). When collapsed, hide timer and controls.
 function toggleDetails(id) {
   collapsedVehicles[id] = !collapsedVehicles[id];
-  renderVehicles();
+  
+  // Thay vì render lại toàn bộ, chỉ toggle trạng thái của xe cụ thể
+  // Tìm xe theo data-vehicle-id attribute
+  const vehicleElement = document.querySelector(`[data-vehicle-id="${id}"]`);
+  
+  if (vehicleElement) {
+    const detailsElement = vehicleElement.querySelector('.details');
+    const arrowElement = vehicleElement.querySelector('.arrow');
+    
+    if (detailsElement && arrowElement) {
+      if (collapsedVehicles[id]) {
+        detailsElement.style.display = 'none';
+        arrowElement.classList.remove('expanded');
+        arrowElement.classList.add('collapsed');
+        vehicleElement.classList.add('collapsed');
+      } else {
+        detailsElement.style.display = 'block';
+        arrowElement.classList.remove('collapsed');
+        arrowElement.classList.add('expanded');
+        vehicleElement.classList.remove('collapsed');
+      }
+    }
+  }
 }
 
 // Reset tất cả xe trong một cung đường: đưa về bãi chờ
@@ -883,8 +921,8 @@ function closeNotesModal() {
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.repairs && Array.isArray(data.repairs)) {
-                    // Lấy 5 lần sửa chữa gần nhất
-                    const recentRepairs = data.repairs.slice(0, 5);
+                    // Lấy 3 lần sửa chữa gần nhất
+                    const recentRepairs = data.repairs.slice(0, 3);
                     let historyHtml = '<div class="repair-history-table-container">';
                     
                     if (recentRepairs.length === 0) {
@@ -899,7 +937,7 @@ function closeNotesModal() {
                         historyHtml += '</div>';
                         historyHtml += '</div>';
                     } else {
-                        historyHtml += '<h3>5 lần sửa chữa gần nhất của Xe ' + vehicleId + '</h3>';
+                        historyHtml += '<h3>3 lần sửa chữa gần nhất của Xe ' + vehicleId + '</h3>';
                         historyHtml += '<div class="repair-history-actions">';
                         historyHtml += '<button class="btn-primary" onclick="showAddRepairModal(' + vehicleId + ')">➕ Thêm sửa chữa mới</button>';
                         
@@ -929,13 +967,13 @@ function closeNotesModal() {
                             
                             historyHtml += `
                                 <tr>
-                                    <td>${repair.repair_date || '-'}</td>
-                                    <td><strong>${repair.repair_type || 'Không có'}</strong></td>
-                                    <td>${repair.description || 'Không có mô tả'}</td>
-                                    <td>${repair.cost > 0 ? repair.cost.toLocaleString('vi-VN') + ' VNĐ' : '-'}</td>
-                                    <td><span class="status-badge status-${repair.status || 'unknown'}">${statusText}</span></td>
-                                    <td>${repair.technician || '-'}</td>
-                                    <td>
+                                    <td data-label="Ngày sửa:">${repair.repair_date || '-'}</td>
+                                    <td data-label="Loại sửa chữa:"><strong>${repair.repair_type || 'Không có'}</strong></td>
+                                    <td data-label="Mô tả:">${repair.description || 'Không có mô tả'}</td>
+                                    <td data-label="Chi phí:">${repair.cost > 0 ? repair.cost.toLocaleString('vi-VN') + ' VNĐ' : '-'}</td>
+                                    <td data-label="Trạng thái:"><span class="status-badge status-${repair.status || 'unknown'}">${statusText}</span></td>
+                                    <td data-label="Thợ sửa:">${repair.technician || '-'}</td>
+                                    <td data-label="Thao tác:">
                                         <button class="edit-repair-btn" onclick="editRepairFromHistory(${repair.id})" title="Sửa sửa chữa">✏️</button>
                                     </td>
                                 </tr>
@@ -1310,12 +1348,14 @@ window.onload = () => {
   }
   
   // Chỉ load vehicle data cho các filter thông thường
-  loadVehicleData();
-  updateTimers();
-  periodicRefresh();
-  
-  // Cập nhật tiêu đề trang lần đầu
-  updatePageTitle();
+  if (filterFromUrl !== 'maintenance' && filterFromUrl !== 'repair' && filterFromUrl !== 'user') {
+    loadVehicleData();
+    updateTimers();
+    periodicRefresh();
+    // Cập nhật tiêu đề trang lần đầu cho filter thông thường
+    updatePageTitle();
+  }
+  // Không cần gọi updatePageTitle() ở đây vì đã gọi trong các filter đặc biệt
 };
 
 // Khởi tạo các chức năng cơ bản (luôn được gọi)
