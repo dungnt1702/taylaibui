@@ -24,10 +24,10 @@ function detectEnvironment() {
     
     // Method 4: Check for specific production domains
     $production_domains = [
-        'tay99672.qlss.com',       // Production domain
-        'www.tay99672.qlss.com',   // Production domain with www
-        'qlss.com',                // Alternative domain
-        'www.qlss.com'             // Alternative domain with www
+        'qlss.taylaibui.vn',       // Production domain
+        'www.qlss.taylaibui.vn',   // Production domain with www
+        'qlss.taylaibui.vn',                // Alternative domain
+        'www.qlss.taylaibui.vn'             // Alternative domain with www
     ];
     
     $is_production = in_array($server_name, $production_domains);
