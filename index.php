@@ -1,5 +1,5 @@
 <?php
-require_once 'db.php';
+require_once 'config.php';
 session_start();
 // Determine if the user is logged in; used to decide whether to show the login modal
 // We need to check both session and cookie, and validate the session is still active
