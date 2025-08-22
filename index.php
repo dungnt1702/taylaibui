@@ -104,9 +104,8 @@ $isAdminUser = isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1;
       </div>
     </div>
   </div>
-  <?php if (!$requiresLogin): ?>
-    <script src="script.js"></script>
-  <?php endif; ?>
+  <!-- Always load script.js for basic functionality like menu toggle -->
+  <script src="script.js"></script>
   
   <script>
     // Login popup functionality

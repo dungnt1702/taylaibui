@@ -188,6 +188,7 @@ header .header-top .menu-toggle {
   .menu-toggle {
     display: block;
     color: #333;
+    z-index: 1002;
   }
 
   /* The sliding menu no longer includes a header logo on mobile */
@@ -901,6 +902,20 @@ body {
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
+}
+
+/* Ensure user content is visible on mobile */
+@media (max-width: 768px) {
+  .user-content {
+    padding: 15px;
+    margin: 0;
+  }
+  
+  /* Ensure menu toggle works on mobile */
+  .menu-toggle {
+    display: block !important;
+    z-index: 1003;
+  }
 }
 
 .user-container {

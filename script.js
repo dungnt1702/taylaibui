@@ -825,6 +825,9 @@ window.onload = () => {
   const filterFromUrl = urlParams.get('filter');
   currentFilter = filterFromUrl || 'all';
   
+  // Luôn khởi tạo các event listeners và chức năng cơ bản
+  initializeBasicFunctions();
+  
   // Xử lý filter user ngay khi load trang
   if (filterFromUrl === 'user') {
     loadUserContent();
@@ -840,24 +843,33 @@ window.onload = () => {
   loadVehicleData();
   updateTimers();
   periodicRefresh();
+  
+  // Cập nhật tiêu đề trang lần đầu
+  updatePageTitle();
+};
+
+// Khởi tạo các chức năng cơ bản (luôn được gọi)
+function initializeBasicFunctions() {
+  console.log('Initializing basic functions...');
+  
   // Đăng ký sự kiện cho nút menu khi ở chế độ mobile
   const menuToggle = document.getElementById('menu-toggle');
   if (menuToggle) {
+    console.log('Menu toggle button found, adding event listener');
     menuToggle.addEventListener('click', toggleNav);
+  } else {
+    console.log('Menu toggle button not found');
   }
 
-  // Cập nhật tiêu đề trang lần đầu
-  updatePageTitle();
-
-      // Đóng menu khi click ra ngoài menu trên mobile
-    document.addEventListener('click', function(e) {
-      const nav = document.getElementById('nav-menu');
-      const toggle = document.getElementById('menu-toggle');
-      if (!nav || !toggle) return;
-      if (nav.classList.contains('open')) {
-        if (!nav.contains(e.target) && e.target !== toggle) {
-          nav.classList.remove('open');
-        }
+  // Đóng menu khi click ra ngoài menu trên mobile
+  document.addEventListener('click', function(e) {
+    const nav = document.getElementById('nav-menu');
+    const toggle = document.getElementById('menu-toggle');
+    if (!nav || !toggle) return;
+    if (nav.classList.contains('open')) {
+      if (!nav.contains(e.target) && e.target !== toggle) {
+        nav.classList.remove('open');
       }
-    });
-};
+    }
+  });
+}
