@@ -20,10 +20,10 @@ function detectEnvironment() {
     
     // Method 4: Check for specific production domains
     $production_domains = [
-        'taylaibui.com',           // Replace with your actual domain
-        'www.taylaibui.com',       // Replace with your actual domain
-        'yourdomain.com',          // Replace with your actual domain
-        'www.yourdomain.com'       // Replace with your actual domain
+        'tay99672.qlss.com',       // Production domain
+        'www.tay99672.qlss.com',   // Production domain with www
+        'qlss.com',                // Alternative domain
+        'www.qlss.com'             // Alternative domain with www
     ];
     
     $is_production = in_array($server_name, $production_domains);
