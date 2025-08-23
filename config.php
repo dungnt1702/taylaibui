@@ -2,6 +2,14 @@
 // Configuration file to automatically detect environment
 // and include appropriate database configuration
 
+// Session configuration for better security and remember me functionality
+// Must be set before session_start() is called
+ini_set('session.cookie_httponly', 1);
+ini_set('session.cookie_secure', 0); // Set to 1 if using HTTPS
+ini_set('session.cookie_samesite', 'Lax');
+ini_set('session.gc_maxlifetime', 3600); // 1 hour for regular sessions
+ini_set('session.cookie_lifetime', 0); // Session cookies expire when browser closes
+
 // Function to detect environment
 function detectEnvironment() {
     // Method 1: Check server hostname/IP

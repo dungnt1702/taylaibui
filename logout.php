@@ -14,21 +14,20 @@ if (ini_get("session.use_cookies")) {
     );
 }
 
-// Xóa tất cả cookies liên quan đến đăng nhập
-if (isset($_COOKIE['remember_login'])) {
-    setcookie('remember_login', '', time() - 3600, '/');
-}
-if (isset($_COOKIE['session_expires'])) {
-    setcookie('session_expires', '', time() - 3600, '/');
-}
-if (isset($_COOKIE['user_id'])) {
-    setcookie('user_id', '', time() - 3600, '/');
-}
-if (isset($_COOKIE['user_name'])) {
-    setcookie('user_name', '', time() - 3600, '/');
-}
-if (isset($_COOKIE['is_admin'])) {
-    setcookie('is_admin', '', time() - 3600, '/');
+// Xóa tất cả cookies liên quan đến đăng nhập và ghi nhớ
+$cookies_to_delete = [
+    'remember_login',
+    'session_expires', 
+    'user_id',
+    'user_name',
+    'is_admin'
+];
+
+foreach ($cookies_to_delete as $cookie_name) {
+    if (isset($_COOKIE[$cookie_name])) {
+        setcookie($cookie_name, '', time() - 3600, '/');
+        setcookie($cookie_name, '', time() - 3600, '/', '', true, true); // Secure and HTTP-only
+    }
 }
 
 // Hủy session

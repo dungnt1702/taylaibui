@@ -10,19 +10,30 @@ if (isset($_SESSION['user_id'])) {
 
 // Check persistent login via cookie
 if (!isset($_SESSION['user_id']) && isset($_COOKIE['user_id']) && isset($_COOKIE['user_name'])) {
-    $_SESSION['user_id'] = $_COOKIE['user_id'];
-    $_SESSION['user_name'] = $_COOKIE['user_name'];
-    if (isset($_COOKIE['is_admin'])) {
-        $_SESSION['is_admin'] = $_COOKIE['is_admin'];
+    // Verify cookie hasn't expired
+    if (isset($_COOKIE['session_expires']) && $_COOKIE['session_expires'] > time()) {
+        $_SESSION['user_id'] = $_COOKIE['user_id'];
+        $_SESSION['user_name'] = $_COOKIE['user_name'];
+        if (isset($_COOKIE['is_admin'])) {
+            $_SESSION['is_admin'] = $_COOKIE['is_admin'];
+        }
+        header('Location: index.php');
+        exit;
+    } else {
+        // Cookie expired, remove it
+        setcookie('user_id', '', time() - 3600, '/');
+        setcookie('user_name', '', time() - 3600, '/');
+        setcookie('is_admin', '', time() - 3600, '/');
+        setcookie('session_expires', '', time() - 3600, '/');
     }
-    header('Location: index.php');
-    exit;
 }
 
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $phone = trim($_POST['phone'] ?? '');
     $password = trim($_POST['password'] ?? '');
+    $remember_me = isset($_POST['remember_me']) ? true : false;
+    
     if ($phone !== '' && $password !== '') {
         $stmt = $mysqli->prepare('SELECT id, name, password, is_admin, is_active FROM users WHERE phone = ?');
         $stmt->bind_param('s', $phone);
@@ -46,14 +57,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
             if ($valid) {
-                // Success: set session and cookies
+                // Success: set session
                 $_SESSION['user_id'] = $uid;
                 $_SESSION['user_name'] = $uname;
                 $_SESSION['is_admin'] = $isAdmin;
-                // Persistent login cookie (7 days)
-                setcookie('user_id', $uid, time() + 7*24*60*60, '/');
-                setcookie('user_name', $uname, time() + 7*24*60*60, '/');
-                setcookie('is_admin', $isAdmin, time() + 7*24*60*60, '/');
+                
+                // Only set persistent login cookies if user chose to remember
+                if ($remember_me) {
+                    $expires = time() + (7 * 24 * 60 * 60); // 7 days
+                    setcookie('user_id', $uid, $expires, '/');
+                    setcookie('user_name', $uname, $expires, '/');
+                    setcookie('is_admin', $isAdmin, $expires, '/');
+                    setcookie('session_expires', $expires, $expires, '/');
+                }
+                
                 $_SESSION['greet'] = true;
                 $stmt->close();
                 header('Location: index.php');
@@ -200,6 +217,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       margin-top: 10px;
       text-align: center;
     }
+    .remember-me {
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+    }
+    .remember-me input[type="checkbox"] {
+      width: auto;
+      margin: 0 8px 0 0;
+    }
+    .remember-me label {
+      margin: 0;
+      font-size: 14px;
+      color: #666;
+    }
   </style>
 </head>
 <body>
@@ -221,6 +252,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <span class="toggle-password" onclick="togglePasswordVisibility()" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); cursor: pointer;">
             👁
           </span>
+        </div>
+        <div class="remember-me">
+          <input type="checkbox" id="remember_me" name="remember_me" />
+          <label for="remember_me">Ghi nhớ đăng nhập trong 7 ngày</label>
         </div>
       </div>
       <div class="button-row" style="display:flex; justify-content: space-between; margin-top: 16px;">

@@ -56,14 +56,14 @@ if ($stmt->fetch()) {
         $rememberLogin = isset($_POST['remember_login']) && $_POST['remember_login'] === '1';
         
         if ($rememberLogin) {
-            // Nếu check vào checkbox: lưu phiên đăng nhập trong 1 tuần
-            setcookie('remember_login', '1', time() + 7*24*60*60, '/');
-            setcookie('session_expires', (time() + 7*24*60*60), time() + 7*24*60*60, '/');
-        } else {
-            // Nếu không check: lưu phiên đăng nhập trong 1 ngày
-            setcookie('remember_login', '1', time() + 24*60*60, '/');
-            setcookie('session_expires', (time() + 24*60*60), time() + 24*60*60, '/');
+            // Nếu check vào checkbox: lưu phiên đăng nhập trong 7 ngày
+            $expires = time() + (7 * 24 * 60 * 60); // 7 days
+            setcookie('user_id', $uid, $expires, '/');
+            setcookie('user_name', $uname, $expires, '/');
+            setcookie('is_admin', $isAdmin, $expires, '/');
+            setcookie('session_expires', $expires, $expires, '/');
         }
+        // Nếu không check: chỉ dùng session thông thường (không tạo cookie)
         
         $stmt->close();
         echo json_encode([
@@ -77,7 +77,7 @@ if ($stmt->fetch()) {
         echo json_encode(['success' => false, 'message' => 'Mật mã không đúng hoặc tài khoản bị khóa']);
     }
 } else {
-    echo json_encode(['success' => false, 'message' => 'Người dùng không tồ tại']);
+    echo json_encode(['success' => false, 'message' => 'Người dùng không tồn tại']);
 }
 
 $stmt->close();

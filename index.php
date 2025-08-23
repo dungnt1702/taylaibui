@@ -1,6 +1,7 @@
 <?php
 require_once 'config.php';
 session_start();
+
 // Determine if the user is logged in; used to decide whether to show the login modal
 // We need to check both session and cookie, and validate the session is still active
 $requiresLogin = true; // Default to requiring login
@@ -10,34 +11,32 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['user_name'])) {
     $requiresLogin = false;
 }
 
-// Check if user has valid remember_login cookie and session expiration
-if (isset($_COOKIE['remember_login']) && $_COOKIE['remember_login'] === '1') {
-    if (isset($_COOKIE['session_expires'])) {
-        $sessionExpires = (int)$_COOKIE['session_expires'];
-        
-        // Kiểm tra xem session có hết hạn chưa
-        if (time() > $sessionExpires) {
-            // Session đã hết hạn, xóa tất cả cookie và session
-            session_destroy();
-            setcookie('remember_login', '', time() - 3600, '/');
-            setcookie('session_expires', '', time() - 3600, '/');
-            $requiresLogin = true;
-        } else if (isset($_SESSION['user_id'])) {
-            // Session còn hạn và user đã đăng nhập
-            $requiresLogin = false;
-        } else {
-            // Cookie còn hạn nhưng không có session, cần đăng nhập lại
-            $requiresLogin = true;
-        }
+// Check if user has valid remember me cookies and session expiration
+if (!$requiresLogin && isset($_COOKIE['user_id']) && isset($_COOKIE['user_name']) && isset($_COOKIE['session_expires'])) {
+    $sessionExpires = (int)$_COOKIE['session_expires'];
+    
+    // Kiểm tra xem session có hết hạn chưa
+    if (time() > $sessionExpires) {
+        // Session đã hết hạn, xóa tất cả cookie và session
+        session_destroy();
+        setcookie('user_id', '', time() - 3600, '/');
+        setcookie('user_name', '', time() - 3600, '/');
+        setcookie('is_admin', '', time() - 3600, '/');
+        setcookie('session_expires', '', time() - 3600, '/');
+        $requiresLogin = true;
     } else {
-        // Không có session_expires, xử lý như cũ
+        // Cookie còn hạn, khôi phục session nếu chưa có
         if (!isset($_SESSION['user_id'])) {
-            $requiresLogin = true;
-        } else {
-            $requiresLogin = false;
+            $_SESSION['user_id'] = $_COOKIE['user_id'];
+            $_SESSION['user_name'] = $_COOKIE['user_name'];
+            if (isset($_COOKIE['is_admin'])) {
+                $_SESSION['is_admin'] = $_COOKIE['is_admin'];
+            }
         }
+        $requiresLogin = false;
     }
 }
+
 // Show greeting alert after successful login
 $greetingScript = '';
 if (!$requiresLogin && isset($_SESSION['greet']) && $_SESSION['greet'] === true) {
@@ -45,8 +44,10 @@ if (!$requiresLogin && isset($_SESSION['greet']) && $_SESSION['greet'] === true)
   $greetingScript = "<script>alert('Chào mừng {$username} vào hệ thống quản lý xe của TAY LÁI BỤI Sóc Sơn');</script>";
   unset($_SESSION['greet']);
 }
+
 // Determine filter from query
 $filter = $_GET['filter'] ?? 'all';
+
 // Determine if the current user is an admin. This will be used for future functionality.
 $isAdminUser = isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1;
 ?>
