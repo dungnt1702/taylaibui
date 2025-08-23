@@ -24,8 +24,8 @@ try {
     
     $mysqli->set_charset("utf8");
     
-    // Lấy danh sách tất cả người dùng
-    $query = "SELECT id, name, phone, is_admin, is_active FROM users ORDER BY id";
+    // Lấy danh sách tất cả người dùng với thông tin timestamp
+    $query = "SELECT id, name, phone, is_admin, is_active, created_at, updated_at FROM users ORDER BY id";
     $result = $mysqli->query($query);
     
     if (!$result) {
@@ -39,7 +39,9 @@ try {
             'name' => $row['name'],
             'phone' => $row['phone'],
             'is_admin' => (bool)$row['is_admin'],
-            'is_active' => (bool)$row['is_active']
+            'is_active' => (bool)$row['is_active'],
+            'created_at' => $row['created_at'] ? date('d/m/Y H:i', strtotime($row['created_at'])) : 'N/A',
+            'updated_at' => $row['updated_at'] ? date('d/m/Y H:i', strtotime($row['updated_at'])) : 'N/A'
         ];
     }
     

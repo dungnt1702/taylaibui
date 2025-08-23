@@ -107,11 +107,11 @@ try {
         // Admin có thể cập nhật tất cả thông tin
         if (!empty($password)) {
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-            $updateQuery = "UPDATE users SET name = ?, phone = ?, password = ?, is_admin = ? WHERE id = ?";
+            $updateQuery = "UPDATE users SET name = ?, phone = ?, password = ?, is_admin = ?, updated_at = NOW() WHERE id = ?";
             $updateStmt = $mysqli->prepare($updateQuery);
             $updateStmt->bind_param("sssii", $name, $phone, $hashedPassword, $role, $userId);
         } else {
-            $updateQuery = "UPDATE users SET name = ?, phone = ?, is_admin = ? WHERE id = ?";
+            $updateQuery = "UPDATE users SET name = ?, phone = ?, is_admin = ?, updated_at = NOW() WHERE id = ?";
             $updateStmt = $mysqli->prepare($updateQuery);
             $updateStmt->bind_param("ssii", $name, $phone, $role, $userId);
         }
@@ -119,11 +119,11 @@ try {
         // User thường chỉ có thể cập nhật tên và password
         if (!empty($password)) {
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-            $updateQuery = "UPDATE users SET name = ?, password = ? WHERE id = ?";
+            $updateQuery = "UPDATE users SET name = ?, password = ?, updated_at = NOW() WHERE id = ?";
             $updateStmt = $mysqli->prepare($updateQuery);
             $updateStmt->bind_param("ssi", $name, $hashedPassword, $userId);
         } else {
-            $updateQuery = "UPDATE users SET name = ? WHERE id = ?";
+            $updateQuery = "UPDATE users SET name = ?, updated_at = NOW() WHERE id = ?";
             $updateStmt = $mysqli->prepare($updateQuery);
             $updateStmt->bind_param("si", $name, $userId);
         }

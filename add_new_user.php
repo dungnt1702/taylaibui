@@ -65,8 +65,8 @@ try {
     // Hash mật khẩu
     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
     
-    // Thêm người dùng mới
-    $insertQuery = "INSERT INTO users (name, phone, password, is_admin, is_active, created_at) VALUES (?, ?, ?, ?, 1, NOW())";
+    // Thêm người dùng mới với created_at và updated_at
+    $insertQuery = "INSERT INTO users (name, phone, password, is_admin, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, 1, NOW(), NOW())";
     $insertStmt = $mysqli->prepare($insertQuery);
     $insertStmt->bind_param("sssi", $name, $phone, $hashedPassword, $role);
     
@@ -75,7 +75,13 @@ try {
         echo json_encode([
             'success' => true,
             'message' => 'Đã thêm người dùng mới thành công',
-            'user_id' => $newUserId
+            'user_id' => $newUserId,
+            'user_info' => [
+                'name' => $name,
+                'phone' => $phone,
+                'role' => $role == 1 ? 'Admin' : 'User',
+                'created_at' => date('Y-m-d H:i:s')
+            ]
         ]);
     } else {
         throw new Exception("Lỗi khi thêm người dùng: " . $insertStmt->error);
@@ -86,7 +92,7 @@ try {
 } catch (Exception $e) {
     echo json_encode([
         'success' => false,
-        'message' => $e->getMessage()
+        'message' => 'Lỗi: ' . $e->getMessage()
     ]);
 } finally {
     if (isset($mysqli)) {
